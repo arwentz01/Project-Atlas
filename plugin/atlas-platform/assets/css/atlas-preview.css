@@ -93,6 +93,13 @@
 .atlas-nav-item:hover,
 .atlas-nav-item:focus { color: #164e57; background: #eef5f5; }
 .atlas-nav-item.is-active { color: #125d65; background: #e5f1f2; }
+.atlas-nav-item.is-future { cursor: default; opacity: .58; }
+.atlas-nav-item.is-future small {
+    margin-left: auto;
+    font-size: 9px;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+}
 .atlas-sidebar-note {
     margin-top: auto;
     padding: 14px;
