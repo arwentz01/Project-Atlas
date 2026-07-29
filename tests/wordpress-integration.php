@@ -105,6 +105,18 @@ $assert(is_string($encodedHealth) && ! str_contains($encodedHealth, ABSPATH), 't
 $assert(is_string($encodedHealth) && ! str_contains(strtolower($encodedHealth), 'sql'), 'the public health response does not expose SQL details');
 $organizationResponse = rest_do_request(new WP_REST_Request('GET', '/atlas/v1/organizations/current'));
 $assert(in_array($organizationResponse->get_status(), [401, 403], true), 'an unauthenticated request cannot read organization context');
+$protectedRequests = [
+    new WP_REST_Request('POST', '/atlas/v1/organizations'),
+    new WP_REST_Request('POST', '/atlas/v1/resources/drafts'),
+    new WP_REST_Request('POST', '/atlas/v1/workflows/drafts'),
+    new WP_REST_Request('GET', '/atlas/v1/diagnostics/readiness'),
+];
+foreach ($protectedRequests as $protectedRequest) {
+    $protectedResponse = rest_do_request($protectedRequest);
+    $assert(in_array($protectedResponse->get_status(), [401, 403], true), sprintf('an unauthenticated %s request to %s is denied', $protectedRequest->get_method(), $protectedRequest->get_route()));
+}
+$invalidMethod = rest_do_request(new WP_REST_Request('DELETE', '/atlas/v1/health'));
+$assert($invalidMethod->get_status() === 404, 'the health route rejects an invalid method');
 
 global $menu;
 do_action('admin_menu');
@@ -118,6 +130,8 @@ $assert(($atlasMenu[0][1] ?? '') === 'atlas_access', 'Atlas navigation uses the 
 $inventory = array_column((new RouteInventory())->all(), null, 'name');
 $assert(($inventory['atlas_home']['capability'] ?? '') === 'atlas_access', 'route inventory and Atlas navigation use the same capability');
 $assert(($inventory['diagnostics']['capability'] ?? '') === 'atlas_view_diagnostics', 'diagnostics inventory uses the diagnostics capability');
+$assert(($inventory['organizations_admin']['capability'] ?? '') === 'atlas_access', 'organization administration navigation and destination share atlas_access');
+$assert(($inventory['resources_admin']['capability'] ?? '') === 'atlas_access', 'resource library navigation and destination share atlas_access');
 
 $testUserId = wp_insert_user([
     'user_login' => 'atlas_integration_' . wp_generate_password(10, false, false),
@@ -131,6 +145,10 @@ if (! is_wp_error($testUserId)) {
     $assert(! current_user_can('atlas_access'), 'an ordinary subscriber cannot access Atlas');
     $assert(! current_user_can('atlas_view_diagnostics'), 'an ordinary subscriber cannot view Atlas diagnostics');
     $assert(! current_user_can('atlas_run_migrations'), 'an ordinary subscriber cannot run Atlas migrations');
+    foreach ($protectedRequests as $protectedRequest) {
+        $subscriberResponse = rest_do_request($protectedRequest);
+        $assert(in_array($subscriberResponse->get_status(), [401, 403], true), sprintf('a subscriber cannot call %s %s directly', $protectedRequest->get_method(), $protectedRequest->get_route()));
+    }
     wp_delete_user((int) $testUserId);
 }
 

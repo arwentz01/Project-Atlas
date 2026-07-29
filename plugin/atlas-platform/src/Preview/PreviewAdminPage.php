@@ -3,13 +3,14 @@ declare(strict_types=1);
 
 namespace Atlas\Platform\Preview;
 
+use Atlas\Platform\Core\Admin\AdminNavigation;
 use Atlas\Platform\Organizations\Services\CurrentOrganizationResolver;
 
 final class PreviewAdminPage
 {
     private string $hookSuffix = '';
 
-    public function __construct(private PreviewService $service, private CurrentOrganizationResolver $organizations) {}
+    public function __construct(private PreviewService $service, private CurrentOrganizationResolver $organizations, private AdminNavigation $navigation) {}
 
     public function register(): void
     {
@@ -52,6 +53,8 @@ final class PreviewAdminPage
         $view['user_name'] = $user->display_name !== '' ? $user->display_name : __('Atlas user', 'atlas-platform');
         $organization = $this->organizations->resolveForUser((int) $user->ID);
         $view['organization_name'] = $organization?->name ?? __('No organization selected', 'atlas-platform');
+        $view['navigation'] = $this->navigation->visible('atlas');
+        $view['has_organization'] = $organization !== null;
 
         require ATLAS_PLATFORM_DIR . 'templates/preview/home.php';
     }

@@ -1,5 +1,5 @@
 <?php
-/** @var array{query: string, resources: list<array<string, string>>, total: int, user_name: string, organization_name: string} $view */
+/** @var array{query: string, resources: list<array<string, string>>, total: int, user_name: string, organization_name: string, has_organization: bool, navigation: list<array{slug:string,label:string,icon:string,url:string,capability:string,current:bool}>} $view */
 declare(strict_types=1);
 
 if (! defined('ABSPATH')) {
@@ -17,7 +17,7 @@ if (! defined('ABSPATH')) {
                 </span>
             </div>
             <div class="atlas-context">
-                <span class="atlas-preview-badge"><?php echo esc_html__('Product preview', 'atlas-platform'); ?></span>
+                <span class="atlas-preview-badge"><?php echo esc_html__('Foundation preview', 'atlas-platform'); ?></span>
                 <span class="atlas-context-copy">
                     <strong><?php echo esc_html($view['user_name']); ?></strong>
                     <small><?php echo esc_html($view['organization_name']); ?></small>
@@ -28,30 +28,15 @@ if (! defined('ABSPATH')) {
 
         <div class="atlas-layout">
             <nav class="atlas-sidebar" aria-label="<?php echo esc_attr__('Atlas primary navigation', 'atlas-platform'); ?>">
-                <a class="atlas-nav-item is-active" href="<?php echo esc_url(admin_url('admin.php?page=atlas')); ?>" aria-current="page">
-                    <span class="dashicons dashicons-admin-home" aria-hidden="true"></span>
-                    <?php echo esc_html__('Home', 'atlas-platform'); ?>
-                </a>
-                <?php
-                $futureNavigation = [
-                    'dashicons-book-alt' => __('Knowledge Base', 'atlas-platform'),
-                    'dashicons-media-document' => __('Patient Education', 'atlas-platform'),
-                    'dashicons-heart' => __('Clinical References', 'atlas-platform'),
-                    'dashicons-shield' => __('Insurance & Coverage', 'atlas-platform'),
-                    'dashicons-editor-ol' => __('Workflows', 'atlas-platform'),
-                    'dashicons-location' => __('Directory & Community', 'atlas-platform'),
-                ];
-                foreach ($futureNavigation as $icon => $label) :
-                    ?>
-                    <span class="atlas-nav-item is-future" title="<?php echo esc_attr__('Planned for a future build', 'atlas-platform'); ?>">
-                        <span class="dashicons <?php echo esc_attr($icon); ?>" aria-hidden="true"></span>
-                        <?php echo esc_html($label); ?>
-                        <small><?php echo esc_html__('Soon', 'atlas-platform'); ?></small>
-                    </span>
+                <?php foreach ($view['navigation'] as $item) : ?>
+                    <a class="atlas-nav-item<?php echo $item['current'] ? ' is-active' : ''; ?>" href="<?php echo esc_url($item['url']); ?>"<?php echo $item['current'] ? ' aria-current="page"' : ''; ?>>
+                        <span class="dashicons <?php echo esc_attr($item['icon']); ?>" aria-hidden="true"></span>
+                        <?php echo esc_html($item['label']); ?>
+                    </a>
                 <?php endforeach; ?>
                 <div class="atlas-sidebar-note">
-                    <strong><?php echo esc_html__('Preview boundary', 'atlas-platform'); ?></strong>
-                    <p><?php echo esc_html__('This screen contains illustrative, non-clinical demonstration content.', 'atlas-platform'); ?></p>
+                    <strong><?php echo esc_html($view['has_organization'] ? __('Organization context', 'atlas-platform') : __('Organization required', 'atlas-platform')); ?></strong>
+                    <p><?php echo esc_html($view['has_organization'] ? $view['organization_name'] : __('Ask an Atlas administrator to assign your organization before using organization-owned content.', 'atlas-platform')); ?></p>
                 </div>
             </nav>
 

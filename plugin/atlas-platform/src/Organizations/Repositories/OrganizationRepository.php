@@ -8,4 +8,6 @@ use Atlas\Platform\Organizations\Domain\Organization;
 interface OrganizationRepository
 {
     public function findActiveById(string $organizationId): ?Organization;
+    /** @param list<string> $organizationIds @return list<Organization> */
+    public function findActiveByIds(array $organizationIds): array;
 }

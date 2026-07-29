@@ -49,6 +49,15 @@ $view = [
     'total' => 1,
     'user_name' => '<img src=x onerror=alert(1)>',
     'organization_name' => '<script>organization</script>',
+    'has_organization' => false,
+    'navigation' => [[
+        'slug' => 'atlas',
+        'label' => '<script>Home</script>',
+        'icon' => 'dashicons-home" onclick="alert(1)',
+        'url' => 'https://example.test/wp-admin/admin.php?page=atlas',
+        'capability' => 'atlas_access',
+        'current' => true,
+    ]],
 ];
 ob_start();
 require ATLAS_PLATFORM_DIR . 'templates/preview/home.php';

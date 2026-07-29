@@ -25,6 +25,8 @@ use Atlas\Platform\Organizations\Repositories\WordPressMembershipRepository;
 use Atlas\Platform\Organizations\Repositories\WordPressOrganizationRepository;
 use Atlas\Platform\Organizations\Services\CurrentOrganizationResolver;
 use Atlas\Platform\Organizations\Services\DefaultCurrentOrganizationResolver;
+use Atlas\Platform\Organizations\Services\OrganizationSelection;
+use Atlas\Platform\Organizations\Services\WordPressOrganizationSelection;
 use Atlas\Platform\Organizations\Onboarding\OrganizationOnboardingRepository;
 use Atlas\Platform\Organizations\Onboarding\WordPressOrganizationOnboardingRepository;
 use Atlas\Platform\Preview\InMemoryPreviewResourceRepository;
@@ -69,6 +71,7 @@ final class Plugin
         $this->container->singleton(PreviewResourceRepository::class, InMemoryPreviewResourceRepository::class);
         $this->container->instance(OrganizationRepository::class, new WordPressOrganizationRepository($wpdb));
         $this->container->instance(MembershipRepository::class, new WordPressMembershipRepository($wpdb));
+        $this->container->singleton(OrganizationSelection::class, WordPressOrganizationSelection::class);
         $this->container->instance(AuditRecorder::class, new WordPressAuditRecorder($wpdb));
         $this->container->instance(OrganizationOnboardingRepository::class, new WordPressOrganizationOnboardingRepository($wpdb,$this->container->get(AuditRecorder::class)));
         $this->container->singleton(CurrentOrganizationResolver::class, DefaultCurrentOrganizationResolver::class);

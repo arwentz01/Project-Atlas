@@ -11,12 +11,15 @@ use Atlas\Platform\Organizations\Repositories\MembershipRepository;
 use Atlas\Platform\Organizations\Repositories\OrganizationRepository;
 use Atlas\Platform\Organizations\Services\DefaultCurrentOrganizationResolver;
 use Atlas\Platform\Organizations\Services\OrganizationAuthorization;
+use Atlas\Platform\Organizations\Services\OrganizationSelection;
 
 final class MemoryOrganizations implements OrganizationRepository
 {
     /** @param array<string, Organization> $organizations */ public function __construct(private array $organizations) {}
     public function findActiveById(string $organizationId): ?Organization { $organization = $this->organizations[$organizationId] ?? null; return $organization?->status === 'active' ? $organization : null; }
+    public function findActiveByIds(array $organizationIds): array { return array_values(array_filter(array_map(fn(string $id): ?Organization => $this->findActiveById($id), $organizationIds))); }
 }
+final class MemorySelection implements OrganizationSelection { public array $selected = []; public function selectedForUser(int $userId): ?string { return $this->selected[$userId] ?? null; } public function selectForUser(int $userId, string $organizationId): void { $this->selected[$userId] = $organizationId; } }
 final class MemoryMemberships implements MembershipRepository
 {
     /** @param array<int, list<string>> $memberships */ public function __construct(private array $memberships) {}
@@ -30,10 +33,15 @@ $b = new Organization('6ba7b810-9dad-41d1-80b4-00c04fd430c8', 'Clinic B', 'clini
 $suspended = new Organization('6ba7b811-9dad-41d1-80b4-00c04fd430c8', 'Suspended', 'suspended', 'suspended', '2026-01-01 00:00:00', '2026-01-01 00:00:00');
 $organizations = new MemoryOrganizations([$a->id => $a, $b->id => $b, $suspended->id => $suspended]);
 $memberships = new MemoryMemberships([10 => [$a->id], 20 => [$b->id], 30 => [$a->id, $b->id], 40 => [$suspended->id]]);
-$resolver = new DefaultCurrentOrganizationResolver($memberships, $organizations);
+$selection = new MemorySelection();
+$resolver = new DefaultCurrentOrganizationResolver($memberships, $organizations, $selection);
 
 org_expect($resolver->resolveForUser(10)?->id === $a->id, 'a user with one active membership resolves that organization');
-org_expect($resolver->resolveForUser(30) === null, 'a user with multiple memberships requires explicit future context selection');
+org_expect($resolver->resolveForUser(30) === null, 'a user with multiple memberships requires explicit context selection');
+$selection->selectForUser(30, $b->id);
+org_expect($resolver->resolveForUser(30)?->id === $b->id, 'an explicitly selected active membership becomes current context');
+$selection->selectForUser(30, $suspended->id);
+org_expect($resolver->resolveForUser(30) === null, 'a selection outside active memberships is ignored');
 org_expect($resolver->resolveForUser(40) === null, 'a suspended organization cannot become current context');
 org_expect($resolver->resolveForUser(0) === null, 'an unauthenticated user has no organization context');
 
