@@ -77,7 +77,7 @@ Suggested capabilities for the plugin foundation:
 
 ```text
 atlas_access
-atlas_manage_platform
+atlas_manage_atlas
 atlas_manage_organizations
 atlas_manage_own_organization
 atlas_manage_members

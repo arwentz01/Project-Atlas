@@ -1,0 +1,2 @@
+<?php
+declare(strict_types=1);namespace Atlas\Platform\PatientResources\Repositories;use Atlas\Platform\PatientResources\Domain\PatientResourceVariant;interface VariantRepository{public function save(string $organizationId,string $versionId,array $customizations,string $key,int $actorUserId):PatientResourceVariant;public function findForOrganization(string $id,string $organizationId):?PatientResourceVariant;}
