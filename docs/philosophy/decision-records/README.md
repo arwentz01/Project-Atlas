@@ -19,3 +19,4 @@ Records are immutable history. If a decision changes, create a new ADR that supe
 - ADR-003: Use HTML as the canonical printable-resource format
 - ADR-004: Do not store PHI by default
 - ADR-005: Expose module capabilities through REST APIs
+- ADR-006: Use a forward-only migration ledger
