@@ -15,7 +15,7 @@ use Throwable;
 
 final class DiagnosticsModule implements Module
 {
-    public function __construct(private ModuleRegistry $modules, private CapabilityRegistry $capabilities, private MigrationRunner $migrations, private MigrationLock $lock, private HealthService $health, private Logger $logger, private ReleaseManifest $release) {}
+    public function __construct(private ModuleRegistry $modules, private CapabilityRegistry $capabilities, private MigrationRunner $migrations, private MigrationLock $lock, private HealthService $health, private Logger $logger, private ReleaseManifest $release,private ReadinessController $readiness) {}
     public function slug(): string { return 'diagnostics'; }
     public function version(): string { return ATLAS_PLATFORM_VERSION; }
     public function dependencies(): array { return ['health']; }
@@ -25,7 +25,9 @@ final class DiagnosticsModule implements Module
         add_action('admin_menu', [$this, 'registerPage']);
         add_action('admin_post_atlas_run_migrations', [$this, 'runMigrations']);
         add_action('admin_post_atlas_clear_stale_migration_lock', [$this, 'clearStaleLock']);
+        add_action('rest_api_init',[$this,'registerRoutes']);
     }
+    public function registerRoutes():void{register_rest_route('atlas/v1','/diagnostics/readiness',['methods'=>'GET','callback'=>[$this->readiness,'show'],'permission_callback'=>[$this->readiness,'permission']]);}
     public function health(): array { return ['status' => 'ok']; }
     public function registerPage(): void
     {

@@ -2,7 +2,7 @@
 
 This directory contains the installable WordPress plugin for Project Atlas.
 
-## Current foundation (0.10.0)
+## Current foundation (0.14.0)
 
 - WordPress plugin bootstrap
 - Namespace autoloader
@@ -20,6 +20,7 @@ This directory contains the installable WordPress plugin for Project Atlas.
 - Idempotent editorial review/publication lifecycle with append-only audit events
 - Organization branding and controlled, idempotent patient-resource variants
 - Versioned, source-linked, tenant-aware operational workflows
+- Protected release-readiness gate for manifest, migrations, modules, capabilities, PHP, and WordPress
 - Read-only Atlas product preview with working demonstration search
 - Conservative uninstall behavior that preserves data
 

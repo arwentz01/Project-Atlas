@@ -7,10 +7,11 @@ namespace Atlas\Platform\Organizations;
 use Atlas\Platform\Core\Container\Container;
 use Atlas\Platform\Core\Modules\Module;
 use Atlas\Platform\Organizations\Rest\CurrentOrganizationController;
+use Atlas\Platform\Organizations\Rest\OrganizationOnboardingController;
 
 final class OrganizationsModule implements Module
 {
-    public function __construct(private CurrentOrganizationController $controller) {}
+    public function __construct(private CurrentOrganizationController $controller, private OrganizationOnboardingController $onboarding) {}
     public function slug(): string { return 'organizations'; }
     public function version(): string { return ATLAS_PLATFORM_VERSION; }
     public function dependencies(): array { return []; }
@@ -30,6 +31,7 @@ final class OrganizationsModule implements Module
     public function registerRoutes(): void
     {
         register_rest_route('atlas/v1', '/organizations/current', ['methods' => 'GET', 'callback' => [$this->controller, 'show'], 'permission_callback' => [$this->controller, 'permission']]);
+        register_rest_route('atlas/v1', '/organizations', ['methods' => 'POST', 'callback' => [$this->onboarding, 'create'], 'permission_callback' => [$this->onboarding, 'permission']]);
     }
     public function health(): array { return ['status' => 'ok', 'feature_status' => 'foundation']; }
 }

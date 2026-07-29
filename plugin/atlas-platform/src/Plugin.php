@@ -4,6 +4,8 @@ declare(strict_types=1);
 namespace Atlas\Platform;
 
 use Atlas\Platform\Core\Capabilities\CapabilityRegistry;
+use Atlas\Platform\Core\Audit\AuditRecorder;
+use Atlas\Platform\Core\Audit\WordPressAuditRecorder;
 use Atlas\Platform\Core\Container\Container;
 use Atlas\Platform\Core\Diagnostics\DiagnosticsModule;
 use Atlas\Platform\Core\Health\HealthModule;
@@ -23,12 +25,16 @@ use Atlas\Platform\Organizations\Repositories\WordPressMembershipRepository;
 use Atlas\Platform\Organizations\Repositories\WordPressOrganizationRepository;
 use Atlas\Platform\Organizations\Services\CurrentOrganizationResolver;
 use Atlas\Platform\Organizations\Services\DefaultCurrentOrganizationResolver;
+use Atlas\Platform\Organizations\Onboarding\OrganizationOnboardingRepository;
+use Atlas\Platform\Organizations\Onboarding\WordPressOrganizationOnboardingRepository;
 use Atlas\Platform\Preview\InMemoryPreviewResourceRepository;
 use Atlas\Platform\Preview\PreviewModule;
 use Atlas\Platform\Preview\PreviewResourceRepository;
 use Atlas\Platform\Resources\Repositories\ResourceRepository;
 use Atlas\Platform\Resources\Repositories\WordPressResourceRepository;
 use Atlas\Platform\Resources\ResourcesModule;
+use Atlas\Platform\Resources\Authoring\ResourceDraftRepository;
+use Atlas\Platform\Resources\Authoring\WordPressResourceDraftRepository;
 use Atlas\Platform\Resources\Search\ResourceSearchRepository;
 use Atlas\Platform\Resources\Search\WordPressResourceSearchRepository;
 use Atlas\Platform\Resources\Editorial\EditorialRepository;
@@ -44,6 +50,8 @@ use Atlas\Platform\PatientResources\Repositories\WordPressVariantRepository;
 use Atlas\Platform\Workflows\Repositories\WorkflowRepository;
 use Atlas\Platform\Workflows\Repositories\WordPressWorkflowRepository;
 use Atlas\Platform\Workflows\WorkflowsModule;
+use Atlas\Platform\Workflows\Authoring\WorkflowDraftRepository;
+use Atlas\Platform\Workflows\Authoring\WordPressWorkflowDraftRepository;
 
 final class Plugin
 {
@@ -61,6 +69,8 @@ final class Plugin
         $this->container->singleton(PreviewResourceRepository::class, InMemoryPreviewResourceRepository::class);
         $this->container->instance(OrganizationRepository::class, new WordPressOrganizationRepository($wpdb));
         $this->container->instance(MembershipRepository::class, new WordPressMembershipRepository($wpdb));
+        $this->container->instance(AuditRecorder::class, new WordPressAuditRecorder($wpdb));
+        $this->container->instance(OrganizationOnboardingRepository::class, new WordPressOrganizationOnboardingRepository($wpdb,$this->container->get(AuditRecorder::class)));
         $this->container->singleton(CurrentOrganizationResolver::class, DefaultCurrentOrganizationResolver::class);
         $this->container->instance(MigrationDiscovery::class, new MigrationDiscovery(ATLAS_PLATFORM_DIR . 'migrations', ATLAS_PLATFORM_DIR));
         $repository = new MigrationRepository($wpdb);
@@ -70,12 +80,14 @@ final class Plugin
         $this->container->instance(MigrationLock::class, $lock);
         $this->container->instance(Lock::class, $lock);
         $this->container->instance(ResourceRepository::class, new WordPressResourceRepository($wpdb, $this->container->get(Logger::class)));
+        $this->container->instance(ResourceDraftRepository::class, new WordPressResourceDraftRepository($wpdb,$this->container->get(AuditRecorder::class)));
         $this->container->instance(ResourceSearchRepository::class, new WordPressResourceSearchRepository($wpdb));
         $this->container->instance(EditorialRepository::class,new WordPressEditorialRepository($wpdb,$this->container->get(EditorialTransitionPolicy::class)));
         $this->container->instance(BrandingRepository::class,new WordPressBrandingRepository($wpdb));
         $this->container->instance(VariantRepository::class,new WordPressVariantRepository($wpdb));
         $this->container->instance(PatientResourceAccessRepository::class,new WordPressPatientResourceAccessRepository($wpdb));
         $this->container->instance(WorkflowRepository::class,new WordPressWorkflowRepository($wpdb));
+        $this->container->instance(WorkflowDraftRepository::class,new WordPressWorkflowDraftRepository($wpdb,$this->container->get(AuditRecorder::class)));
         $this->container->singleton(MigrationRunner::class, fn(Container $container): MigrationRunner => new MigrationRunner($container->get(MigrationDiscovery::class), $container->get(MigrationStore::class), $container->get(Lock::class), $container->get(Logger::class), $wpdb));
         $registry = new ModuleRegistry($this->container, $this->container->get(Logger::class));
         $this->container->instance(ModuleRegistry::class, $registry);
