@@ -2,7 +2,7 @@
 
 This directory contains the installable WordPress plugin for Project Atlas.
 
-## Current foundation (0.5.0)
+## Current foundation (0.6.0)
 
 - WordPress plugin bootstrap
 - Namespace autoloader
@@ -15,6 +15,7 @@ This directory contains the installable WordPress plugin for Project Atlas.
 - Public REST health endpoint
 - Organization and membership persistence boundary with read-only current-context API
 - Source-aware Resource, immutable Resource Version, Source, and Citation read boundary
+- Tenant-aware published resource search with bounded filters and answer-card metadata
 - Read-only Atlas product preview with working demonstration search
 - Conservative uninstall behavior that preserves data
 
@@ -47,4 +48,6 @@ For a disposable WordPress installation, see [`../../docs/WORDPRESS_INTEGRATION_
 
 The Organizations foundation provides scoped repository contracts, current-context resolution, tenant authorization, MySQL-compatible tables, and `GET /wp-json/atlas/v1/organizations/current`. Organization creation, invitations, switching, branding, and deletion remain intentionally deferred.
 
-The Resources foundation provides immutable version and citation models plus the tenant-aware `GET /wp-json/atlas/v1/resources/{id}` endpoint. Search, authoring, review mutations, and seed content remain future builds.
+The Resources foundation provides immutable version and citation models plus the tenant-aware `GET /wp-json/atlas/v1/resources/{id}` endpoint. Authoring, review mutations, and seed content remain future builds.
+
+`GET /wp-json/atlas/v1/resources` provides bounded search over published global and current-organization resources with optional type, page, and page-size parameters.

@@ -29,6 +29,8 @@ use Atlas\Platform\Preview\PreviewResourceRepository;
 use Atlas\Platform\Resources\Repositories\ResourceRepository;
 use Atlas\Platform\Resources\Repositories\WordPressResourceRepository;
 use Atlas\Platform\Resources\ResourcesModule;
+use Atlas\Platform\Resources\Search\ResourceSearchRepository;
+use Atlas\Platform\Resources\Search\WordPressResourceSearchRepository;
 
 final class Plugin
 {
@@ -55,6 +57,7 @@ final class Plugin
         $this->container->instance(MigrationLock::class, $lock);
         $this->container->instance(Lock::class, $lock);
         $this->container->instance(ResourceRepository::class, new WordPressResourceRepository($wpdb, $this->container->get(Logger::class)));
+        $this->container->instance(ResourceSearchRepository::class, new WordPressResourceSearchRepository($wpdb));
         $this->container->singleton(MigrationRunner::class, fn(Container $container): MigrationRunner => new MigrationRunner($container->get(MigrationDiscovery::class), $container->get(MigrationStore::class), $container->get(Lock::class), $container->get(Logger::class), $wpdb));
         $registry = new ModuleRegistry($this->container, $this->container->get(Logger::class));
         $this->container->instance(ModuleRegistry::class, $registry);

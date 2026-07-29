@@ -1,5 +1,5 @@
 {
-  "version": "0.5.0",
+  "version": "0.6.0",
   "required": [
     "atlas-platform.php",
     "src/Plugin.php",
@@ -38,6 +38,12 @@
     "src/Resources/Repositories/WordPressResourceRepository.php",
     "src/Resources/Services/ResourceReader.php",
     "src/Resources/Rest/ResourceController.php",
+    "src/Resources/Search/SearchCriteria.php",
+    "src/Resources/Search/SearchResult.php",
+    "src/Resources/Search/SearchPage.php",
+    "src/Resources/Search/ResourceSearchRepository.php",
+    "src/Resources/Search/ResourceSearchService.php",
+    "src/Resources/Search/WordPressResourceSearchRepository.php",
     "templates/preview/home.php",
     "assets/css/atlas-preview.css",
     "migrations/0001_core_migration_ledger.php",

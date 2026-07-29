@@ -12,6 +12,11 @@ use Atlas\Platform\Resources\Domain\ResourcePolicy;
 use Atlas\Platform\Resources\Domain\ResourceVersion;
 use Atlas\Platform\Resources\Repositories\ResourceRepository;
 use Atlas\Platform\Resources\Services\ResourceReader;
+use Atlas\Platform\Resources\Search\ResourceSearchRepository;
+use Atlas\Platform\Resources\Search\ResourceSearchService;
+use Atlas\Platform\Resources\Search\SearchCriteria;
+use Atlas\Platform\Resources\Search\SearchPage;
+use Atlas\Platform\Resources\Search\SearchResult;
 
 final class MemoryResources implements ResourceRepository
 {
@@ -23,6 +28,11 @@ final class MemoryResources implements ResourceRepository
         if (in_array($resource->resource->scope, ResourcePolicy::GLOBAL_SCOPES, true)) { return $resource; }
         return $resource->resource->scope === 'organization' && $organizationId !== null && $resource->resource->organizationId === $organizationId ? $resource : null;
     }
+}
+final class MemorySearch implements ResourceSearchRepository
+{
+    public ?string $receivedOrganization = null;
+    public function searchPublished(SearchCriteria $criteria, ?string $organizationId): SearchPage { $this->receivedOrganization=$organizationId; $items=$criteria->query==='missing'?[]:[new SearchResult('550e8400-e29b-41d4-a716-446655440000','Coverage example','Actionable summary','payer_summary','platform','published','2026-01-01','2027-01-01','Example agency','Example source')]; return new SearchPage($items,$criteria->page,$criteria->perPage,false); }
 }
 function resource_expect(bool $condition, string $message): void { if (! $condition) { throw new RuntimeException($message); } echo "PASS: {$message}\n"; }
 function published(string $id, string $scope, ?string $organizationId, string $status = 'published'): PublishedResource
@@ -48,5 +58,12 @@ resource_expect($policy->validScope('organization') && ! $policy->validScope('te
 resource_expect($policy->validType('patient_education') && ! $policy->validType('post'), 'resource types use the canonical policy');
 resource_expect($policy->validReviewStatus('review_due') && ! $policy->validReviewStatus('live'), 'review lifecycle states use the canonical policy');
 resource_expect($policy->scopeKey('organization', $orgId) === 'organization:' . $orgId && $policy->scopeKey('organization', null) === null, 'organization scope keys require explicit ownership');
+$searchRepository=new MemorySearch(); $search=new ResourceSearchService($searchRepository,$policy);
+$criteria=SearchCriteria::normalize('  coverage   example  ','payer_summary',1,20); $page=$search->search($criteria,$orgId);
+resource_expect($criteria->query==='coverage example' && $searchRepository->receivedOrganization===$orgId,'search normalizes input and passes server-resolved tenant context');
+resource_expect(count($page->results)===1 && ($page->toArray()['items'][0]['source_publisher']??'')==='Example agency','search answer cards retain source authority metadata');
+resource_expect($search->search(SearchCriteria::normalize('missing',null),$orgId)->results===[],'search returns an intentional empty result set');
+try { SearchCriteria::normalize(str_repeat('x',101),null); throw new RuntimeException('long query accepted'); } catch (InvalidArgumentException) { resource_expect(true,'search rejects oversized queries'); }
+try { $search->search(SearchCriteria::normalize('', 'post'),$orgId); throw new RuntimeException('invalid type accepted'); } catch (InvalidArgumentException) { resource_expect(true,'search rejects unsupported resource type filters'); }
 
 echo "All resource foundation tests passed.\n";

@@ -84,6 +84,7 @@ $routes = $server->get_routes();
 $assert(isset($routes['/atlas/v1/health']), 'the public health route is registered');
 $assert(isset($routes['/atlas/v1/organizations/current']), 'the current organization route is registered');
 $assert(isset($routes['/atlas/v1/resources/(?P<id>[a-fA-F0-9-]{36})']), 'the resource detail route is registered');
+$assert(isset($routes['/atlas/v1/resources']), 'the resource search route is registered');
 $healthRequest = new WP_REST_Request('GET', '/atlas/v1/health');
 $healthResponse = rest_do_request($healthRequest);
 $healthData = $healthResponse->get_data();

@@ -18,6 +18,7 @@ final class ResourcesModule implements Module
     public function registerRoutes(): void
     {
         register_rest_route('atlas/v1', '/resources/(?P<id>[a-fA-F0-9-]{36})', ['methods' => 'GET', 'callback' => [$this->controller, 'show'], 'permission_callback' => [$this->controller, 'permission']]);
+        register_rest_route('atlas/v1', '/resources', ['methods' => 'GET', 'callback' => [$this->controller, 'index'], 'permission_callback' => [$this->controller, 'permission']]);
     }
     public function health(): array { return ['status' => 'ok', 'mode' => 'read_only']; }
 }
