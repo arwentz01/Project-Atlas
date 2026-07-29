@@ -1,0 +1,2 @@
+<?php
+declare(strict_types=1);namespace Atlas\Platform\Core\Diagnostics;use WP_REST_Request;use WP_REST_Response;final class ReadinessController{public function __construct(private ReadinessService$service){}public function permission():bool{return is_user_logged_in()&&current_user_can('atlas_view_diagnostics');}public function show(WP_REST_Request$request):WP_REST_Response{$report=$this->service->report();return new WP_REST_Response($report,$report['status']==='ready'?200:503);}}
