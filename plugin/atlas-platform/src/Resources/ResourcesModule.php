@@ -14,10 +14,12 @@ use Atlas\Platform\Resources\Editorial\Admin\EditorialQueueAdminPage;
 use Atlas\Platform\Resources\Personal\PersonalWorkspaceAdminPage;
 use Atlas\Platform\Resources\Packets\PacketBuilderAdminPage;
 use Atlas\Platform\Resources\Sources\SourceWorkspaceAdminPage;
+use Atlas\Platform\Resources\Rest\SourceWorkspaceController;
+use Atlas\Platform\Resources\Rest\PacketController;
 
 final class ResourcesModule implements Module
 {
-    public function __construct(private ResourceController $controller,private ResourceAdminPage $page,private ResourceDraftController $drafts,private ResourceLibraryAdminPage $library,private ResourceAuthoringAdminPage $authoring,private EditorialQueueAdminPage $review,private PersonalWorkspaceAdminPage $personal,private PacketBuilderAdminPage $packets,private SourceWorkspaceAdminPage $sources) {}
+    public function __construct(private ResourceController $controller,private ResourceAdminPage $page,private ResourceDraftController $drafts,private ResourceLibraryAdminPage $library,private ResourceAuthoringAdminPage $authoring,private EditorialQueueAdminPage $review,private PersonalWorkspaceAdminPage $personal,private PacketBuilderAdminPage $packets,private SourceWorkspaceAdminPage $sources,private SourceWorkspaceController $sourceController,private PacketController $packetController) {}
     public function slug(): string { return 'resources'; }
     public function version(): string { return ATLAS_PLATFORM_VERSION; }
     public function dependencies(): array { return ['organizations']; }
@@ -47,6 +49,13 @@ final class ResourcesModule implements Module
         register_rest_route('atlas/v1', '/resources', ['methods' => 'GET', 'callback' => [$this->controller, 'index'], 'permission_callback' => [$this->controller, 'permission']]);
         register_rest_route('atlas/v1', '/resources/drafts', ['methods' => 'POST', 'callback' => [$this->drafts, 'create'], 'permission_callback' => [$this->drafts, 'permission']]);
         register_rest_route('atlas/v1','/resource-versions/(?P<id>[a-fA-F0-9-]{36})/transitions',['methods'=>'POST','callback'=>[$this->controller,'transition'],'permission_callback'=>[$this->controller,'transitionPermission']]);
+        register_rest_route('atlas/v1','/sources/dashboard',['methods'=>'GET','callback'=>[$this->sourceController,'dashboard'],'permission_callback'=>[$this->sourceController,'readPermission']]);
+        register_rest_route('atlas/v1','/sources/documents',['methods'=>'POST','callback'=>[$this->sourceController,'createDocument'],'permission_callback'=>[$this->sourceController,'sourceWritePermission']]);
+        register_rest_route('atlas/v1','/payer-requirements',['methods'=>'GET','callback'=>[$this->sourceController,'requirements'],'permission_callback'=>[$this->sourceController,'readPermission']]);
+        register_rest_route('atlas/v1','/payer-requirements',['methods'=>'POST','callback'=>[$this->sourceController,'createRequirement'],'permission_callback'=>[$this->sourceController,'reviewPermission']]);
+        register_rest_route('atlas/v1','/payer-requirements/(?P<id>[a-fA-F0-9-]{36})/review',['methods'=>'POST','callback'=>[$this->sourceController,'reviewRequirement'],'permission_callback'=>[$this->sourceController,'reviewPermission']]);
+        register_rest_route('atlas/v1','/packets',['methods'=>'POST','callback'=>[$this->packetController,'create'],'permission_callback'=>[$this->packetController,'createPermission']]);
+        register_rest_route('atlas/v1','/packets/(?P<id>[a-fA-F0-9-]{36})',['methods'=>'GET','callback'=>[$this->packetController,'show'],'permission_callback'=>[$this->packetController,'permission']]);
     }
     public function health(): array { return ['status' => 'ok', 'mode' => 'read_only']; }
 }

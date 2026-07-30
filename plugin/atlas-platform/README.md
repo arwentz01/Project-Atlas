@@ -2,7 +2,7 @@
 
 This directory contains the installable WordPress plugin for Project Atlas.
 
-## Current foundation (0.55.0)
+## Current foundation (0.57.0)
 
 - WordPress plugin bootstrap
 - Namespace autoloader
@@ -38,6 +38,8 @@ This directory contains the installable WordPress plugin for Project Atlas.
 - Patient packet builder with ordered Resource references
 - Source document registry, anchored excerpts, extraction candidates, and reviewed payer requirement drafts
 - Packet item/status management, source freshness/status tracking, filtered payer requirement discovery, and requirement review transitions
+- REST-backed source workspace service for audited payer requirement creation, discovery, and review
+- REST-backed packet creation, preview, item validation, audit events, and print-safe packet rendering
 
 ## Install manually
 

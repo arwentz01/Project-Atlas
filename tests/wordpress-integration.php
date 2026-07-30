@@ -91,6 +91,12 @@ $assert(isset($routes['/atlas/v1/resources/(?P<id>[a-fA-F0-9-]{36})']), 'the res
 $assert(isset($routes['/atlas/v1/resources']), 'the resource search route is registered');
 $assert(isset($routes['/atlas/v1/resources/drafts']), 'the resource draft creation route is registered');
 $assert(isset($routes['/atlas/v1/resource-versions/(?P<id>[a-fA-F0-9-]{36})/transitions']), 'the editorial transition route is registered');
+$assert(isset($routes['/atlas/v1/sources/dashboard']), 'the source workspace dashboard route is registered');
+$assert(isset($routes['/atlas/v1/sources/documents']), 'the source document creation route is registered');
+$assert(isset($routes['/atlas/v1/payer-requirements']), 'the payer requirement collection route is registered');
+$assert(isset($routes['/atlas/v1/payer-requirements/(?P<id>[a-fA-F0-9-]{36})/review']), 'the payer requirement review route is registered');
+$assert(isset($routes['/atlas/v1/packets']), 'the packet creation route is registered');
+$assert(isset($routes['/atlas/v1/packets/(?P<id>[a-fA-F0-9-]{36})']), 'the packet preview route is registered');
 $assert(isset($routes['/atlas/v1/patient-resources/(?P<id>[a-fA-F0-9-]{36})/variants']), 'the patient resource variant route is registered');
 $assert(isset($routes['/atlas/v1/workflows/(?P<id>[a-fA-F0-9-]{36})']), 'the workflow detail route is registered');
 $assert(isset($routes['/atlas/v1/workflows/drafts']), 'the workflow draft creation route is registered');
@@ -111,6 +117,9 @@ $assert(in_array($organizationResponse->get_status(), [401, 403], true), 'an una
 $protectedRequests = [
     new WP_REST_Request('POST', '/atlas/v1/organizations'),
     new WP_REST_Request('POST', '/atlas/v1/resources/drafts'),
+    new WP_REST_Request('POST', '/atlas/v1/sources/documents'),
+    new WP_REST_Request('POST', '/atlas/v1/payer-requirements'),
+    new WP_REST_Request('POST', '/atlas/v1/packets'),
     new WP_REST_Request('POST', '/atlas/v1/workflows/drafts'),
     new WP_REST_Request('GET', '/atlas/v1/diagnostics/readiness'),
 ];

@@ -1,5 +1,5 @@
 {
-  "version": "0.55.0",
+  "version": "0.57.0",
   "required": [
     "atlas-platform.php",
     "src/Plugin.php",
@@ -63,6 +63,8 @@
     "src/Resources/Repositories/WordPressResourceRepository.php",
     "src/Resources/Services/ResourceReader.php",
     "src/Resources/Rest/ResourceController.php",
+    "src/Resources/Rest/PacketController.php",
+    "src/Resources/Rest/SourceWorkspaceController.php",
     "src/Resources/Presentation/ResourceAdminPage.php",
     "src/Resources/Presentation/ResourceLibraryAdminPage.php",
     "src/Resources/Presentation/StructuredContentRenderer.php",
@@ -120,9 +122,11 @@
     "src/Resources/Personal/WordPressPersonalWorkspaceRepository.php",
     "src/Resources/Personal/PersonalWorkspaceAdminPage.php",
     "src/Resources/Packets/PacketRepository.php",
+    "src/Resources/Packets/PacketService.php",
     "src/Resources/Packets/WordPressPacketRepository.php",
     "src/Resources/Packets/PacketBuilderAdminPage.php",
     "src/Resources/Sources/SourceWorkspaceRepository.php",
+    "src/Resources/Sources/SourceWorkspaceService.php",
     "src/Resources/Sources/WordPressSourceWorkspaceRepository.php",
     "src/Resources/Sources/SourceWorkspaceAdminPage.php",
     "templates/preview/home.php",

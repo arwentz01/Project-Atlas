@@ -1,0 +1,24 @@
+<?php
+declare(strict_types=1);
+namespace Atlas\Platform\Resources\Rest;
+use Atlas\Platform\Core\Logging\Logger;
+use Atlas\Platform\Organizations\Services\CurrentOrganizationResolver;
+use Atlas\Platform\Resources\Sources\SourceWorkspaceService;
+use InvalidArgumentException;
+use Throwable;
+use WP_Error;
+use WP_REST_Request;
+use WP_REST_Response;
+final class SourceWorkspaceController
+{
+public function __construct(private SourceWorkspaceService$service,private CurrentOrganizationResolver$orgs,private Logger$logger){}
+public function readPermission():bool{return is_user_logged_in()&&current_user_can('atlas_access');}
+public function sourceWritePermission():bool{return is_user_logged_in()&&current_user_can('atlas_upload_sources');}
+public function reviewPermission():bool{return is_user_logged_in()&&current_user_can('atlas_review_extractions');}
+public function requirements(WP_REST_Request$r):WP_REST_Response|WP_Error{try{$org=$this->orgs->resolveForUser(get_current_user_id());return new WP_REST_Response(['requirements'=>$this->service->requirements($org?->id,['payer'=>$r->get_param('payer'),'topic'=>$r->get_param('topic'),'status'=>$r->get_param('status')],max(1,(int)($r->get_param('per_page')?:25)))],200);}catch(Throwable$e){return$this->error($e,'atlas_requirements_unavailable',500);}}
+public function dashboard(WP_REST_Request$r):WP_REST_Response|WP_Error{try{$org=$this->orgs->resolveForUser(get_current_user_id());return new WP_REST_Response($this->service->dashboard($org?->id),200);}catch(Throwable$e){return$this->error($e,'atlas_source_dashboard_unavailable',500);}}
+public function createDocument(WP_REST_Request$r):WP_REST_Response|WP_Error{try{$org=$this->orgs->resolveForUser(get_current_user_id());$id=$this->service->createDocument($org?->id,get_current_user_id(),(array)$r->get_json_params());return new WP_REST_Response(['id'=>$id],201);}catch(Throwable$e){return$this->error($e,'atlas_source_document_failed');}}
+public function createRequirement(WP_REST_Request$r):WP_REST_Response|WP_Error{try{$org=$this->orgs->resolveForUser(get_current_user_id());$id=$this->service->createRequirement($org?->id,get_current_user_id(),(array)$r->get_json_params());return new WP_REST_Response(['id'=>$id],201);}catch(Throwable$e){return$this->error($e,'atlas_requirement_failed');}}
+public function reviewRequirement(WP_REST_Request$r):WP_REST_Response|WP_Error{try{$org=$this->orgs->resolveForUser(get_current_user_id());$ok=$this->service->reviewRequirement((string)$r->get_param('id'),$org?->id,(string)$r->get_param('status'),get_current_user_id());return$ok?new WP_REST_Response(['status'=>'ok'],200):new WP_Error('atlas_requirement_not_found',__('The requirement was not found or could not be updated.','atlas-platform'),['status'=>404]);}catch(Throwable$e){return$this->error($e,'atlas_requirement_review_failed');}}
+private function error(Throwable$e,string$code,int$fallback=400):WP_Error{$status=$e instanceof InvalidArgumentException?400:$fallback;if(!$e instanceof InvalidArgumentException){$this->logger->log('error',$code,'Source workspace request failed.',[],'resources',$e);}return new WP_Error($code,$e instanceof InvalidArgumentException?$e->getMessage():__('The source workspace request failed safely.','atlas-platform'),['status'=>$status]);}
+}
