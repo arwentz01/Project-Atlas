@@ -93,13 +93,6 @@
 .atlas-nav-item:hover,
 .atlas-nav-item:focus { color: #164e57; background: #eef5f5; }
 .atlas-nav-item.is-active { color: #125d65; background: #e5f1f2; }
-.atlas-nav-item.is-future { cursor: default; opacity: .58; }
-.atlas-nav-item.is-future small {
-    margin-left: auto;
-    font-size: 9px;
-    letter-spacing: .05em;
-    text-transform: uppercase;
-}
 .atlas-sidebar-note {
     margin-top: auto;
     padding: 14px;
@@ -208,6 +201,20 @@
 .atlas-library-row p { margin: 0 0 10px; color: #58707c; }
 .atlas-library-row small { color: #647985; }
 .atlas-pagination { display: flex; align-items: center; justify-content: center; gap: 14px; margin-top: 24px; }
+.atlas-authoring-form { max-width: 980px; }
+.atlas-authoring-form > p { margin-top: 24px; }
+.atlas-authoring-form label { display: grid; gap: 7px; font-weight: 700; }
+.atlas-authoring-form textarea,.atlas-authoring-form input,.atlas-authoring-form select { width: 100%; }
+.atlas-form-columns { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 16px; margin-bottom: 16px; }
+@media(max-width:680px){.atlas-form-columns{grid-template-columns:1fr}}
+.atlas-row-actions { display: flex; align-items: center; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+.atlas-row-actions form { margin: 0; }
+.atlas-workflow-steps { display: grid; gap: 18px; margin: 28px 0 0; padding-left: 28px; }
+.atlas-workflow-steps article { padding: 22px; border: 1px solid #d9e3e7; border-radius: 12px; background: #fff; }
+.atlas-workflow-steps h2 { margin-top: 0; }
+.atlas-patient-preview { margin-top: 28px; padding: clamp(24px,5vw,52px); border: 1px solid #cfdadd; border-top: 8px solid var(--atlas-brand-color,#176b72); border-radius: 12px; background: #fff; }
+.atlas-patient-preview > header { display: flex; justify-content: space-between; gap: 18px; padding-bottom: 18px; border-bottom: 1px solid #d9e3e7; }
+.atlas-patient-preview > footer { margin-top: 24px; padding-top: 18px; border-top: 1px solid #d9e3e7; text-align: center; }
 
 @media (max-width: 960px) {
     .atlas-layout { grid-template-columns: 76px minmax(0, 1fr); }
@@ -259,5 +266,5 @@
 @media (max-width:780px){.atlas-resource-header,.atlas-resource-footer{display:block}.atlas-print-button{margin-top:15px}.atlas-resource-columns{grid-template-columns:1fr}}
 @media print {
     #adminmenumain,#wpadminbar,#screen-meta-links,.atlas-resource-breadcrumb,.atlas-print-button,.update-nag,.notice { display:none!important; }
-    html.wp-toolbar{padding-top:0}.atlas-preview-wrap{margin:0}.atlas-shell{min-height:0;border:0;box-shadow:none}.atlas-resource-main{max-width:none;padding:0}.atlas-resource-columns{grid-template-columns:2fr 1fr}.atlas-resource-content,.atlas-resource-sources{break-inside:avoid;border-color:#999}.atlas-trust-strip{background:#fff;border-color:#777}#wpcontent{margin-left:0}
+    html.wp-toolbar{padding-top:0}.atlas-preview-wrap{margin:0}.atlas-shell{min-height:0;border:0;box-shadow:none}.atlas-resource-main{max-width:none;padding:0}.atlas-resource-columns{grid-template-columns:2fr 1fr}.atlas-resource-content,.atlas-resource-sources{break-inside:avoid;border-color:#999}.atlas-trust-strip{background:#fff;border-color:#777}#wpcontent{margin-left:0}.atlas-patient-preview{margin:0;border-left:0;border-right:0;border-bottom:0}.atlas-patient-preview~*,.atlas-patient-preview+*{display:none}.atlas-authoring-form,.atlas-admin-panel:has(.atlas-authoring-form){display:none}
 }

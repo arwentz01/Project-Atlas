@@ -1,0 +1,2 @@
+<?php
+declare(strict_types=1);namespace Atlas\Platform\Resources\Editorial;final class EditorialQueueItem{public function __construct(public readonly string$resourceId,public readonly string$versionId,public readonly string$title,public readonly string$summary,public readonly string$scope,public readonly ?string$organizationId,public readonly string$status,public readonly int$versionNumber,public readonly string$createdAt){}}

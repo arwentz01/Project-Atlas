@@ -132,6 +132,8 @@ $assert(($inventory['atlas_home']['capability'] ?? '') === 'atlas_access', 'rout
 $assert(($inventory['diagnostics']['capability'] ?? '') === 'atlas_view_diagnostics', 'diagnostics inventory uses the diagnostics capability');
 $assert(($inventory['organizations_admin']['capability'] ?? '') === 'atlas_access', 'organization administration navigation and destination share atlas_access');
 $assert(($inventory['resources_admin']['capability'] ?? '') === 'atlas_access', 'resource library navigation and destination share atlas_access');
+$assert(($inventory['resource_create_admin']['capability'] ?? '') === 'atlas_create_resources', 'resource authoring navigation and destination share the authoring capability');
+$assert(function_exists('wp_generate_uuid4'), 'the WordPress UUID API required by mutations is available');
 
 $testUserId = wp_insert_user([
     'user_login' => 'atlas_integration_' . wp_generate_password(10, false, false),

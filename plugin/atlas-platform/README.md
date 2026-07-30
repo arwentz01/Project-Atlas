@@ -2,7 +2,7 @@
 
 This directory contains the installable WordPress plugin for Project Atlas.
 
-## Current foundation (0.18.0)
+## Current foundation (0.22.0)
 
 - WordPress plugin bootstrap
 - Namespace autoloader

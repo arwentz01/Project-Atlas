@@ -26,7 +26,7 @@ $messages = ['selected' => __('Organization context updated.', 'atlas-platform')
     </section>
     <?php if (current_user_can('atlas_manage_organizations')) : ?>
     <section class="atlas-admin-panel" aria-labelledby="atlas-org-create-title"><h2 id="atlas-org-create-title"><?php echo esc_html__('Create organization', 'atlas-platform'); ?></h2>
-        <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" class="atlas-form-grid"><input type="hidden" name="action" value="atlas_create_organization"><input type="hidden" name="idempotency_key" value="<?php echo esc_attr(wp_generate_uuid_4()); ?>"><?php wp_nonce_field('atlas_create_organization'); ?>
+        <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" class="atlas-form-grid"><input type="hidden" name="action" value="atlas_create_organization"><input type="hidden" name="idempotency_key" value="<?php echo esc_attr(wp_generate_uuid4()); ?>"><?php wp_nonce_field('atlas_create_organization'); ?>
             <label><?php echo esc_html__('Name', 'atlas-platform'); ?><input required maxlength="255" name="name" type="text"></label>
             <label><?php echo esc_html__('Slug', 'atlas-platform'); ?><input required maxlength="191" pattern="[a-z0-9]+(?:-[a-z0-9]+)*" name="slug" type="text"></label>
             <p><button class="button button-primary" type="submit"><?php echo esc_html__('Create organization', 'atlas-platform'); ?></button></p>

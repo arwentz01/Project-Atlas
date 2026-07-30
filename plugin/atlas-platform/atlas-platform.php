@@ -3,7 +3,7 @@
  * Plugin Name: Atlas Platform
  * Plugin URI: https://github.com/arwentz01/Project-Atlas
  * Description: Clinical operations platform foundation for Project Atlas.
- * Version: 0.18.0
+ * Version: 0.22.0
  * Requires at least: 6.5
  * Requires PHP: 8.1
  * Author: Project Atlas
@@ -17,7 +17,7 @@ if (! defined('ABSPATH')) {
     exit;
 }
 
-define('ATLAS_PLATFORM_VERSION', '0.18.0');
+define('ATLAS_PLATFORM_VERSION', '0.22.0');
 define('ATLAS_PLATFORM_FILE', __FILE__);
 define('ATLAS_PLATFORM_DIR', plugin_dir_path(__FILE__));
 define('ATLAS_PLATFORM_URL', plugin_dir_url(__FILE__));
