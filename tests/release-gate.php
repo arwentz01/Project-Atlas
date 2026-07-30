@@ -15,7 +15,7 @@ $assert = static function (bool $condition, string $message) use (&$failures): v
 };
 
 $manifest = json_decode((string) file_get_contents($manifestPath), true, 512, JSON_THROW_ON_ERROR);
-$assert(($manifest['version'] ?? '') === '0.22.0', 'release manifest matches plugin version 0.22.0');
+$assert(($manifest['version'] ?? '') === '0.55.0', 'release manifest matches plugin version 0.55.0');
 $required = is_array($manifest['required'] ?? null) ? $manifest['required'] : [];
 $assert(count($required) === count(array_unique($required)), 'release manifest has no duplicate paths');
 foreach ($required as $relative) {

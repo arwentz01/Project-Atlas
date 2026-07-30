@@ -9,9 +9,9 @@ final class WordPressResourceSearchRepository implements ResourceSearchRepositor
     public function __construct(private object $database) { $this->resources=$database->prefix.'atlas_resources'; $this->versions=$database->prefix.'atlas_resource_versions'; $this->citations=$database->prefix.'atlas_citations'; $this->sources=$database->prefix.'atlas_sources'; }
     public function searchPublished(SearchCriteria $criteria, ?string $organizationId): SearchPage
     {
-        $where=["v.review_status = %s", "(r.scope IN ('platform','public') OR (r.scope = 'organization' AND r.organization_id = %s))"];
+        $where=["r.archived_at IS NULL", "v.review_status = %s", "(r.scope IN ('platform','public') OR (r.scope = 'organization' AND r.organization_id = %s))"];
         $args=['published',$organizationId ?? ''];
-        if ($criteria->query !== '') { $like='%'.$this->database->esc_like($criteria->query).'%'; $where[]='(v.title LIKE %s OR v.summary LIKE %s OR r.slug LIKE %s)'; array_push($args,$like,$like,$like); }
+        if ($criteria->query !== '') { $like='%'.$this->database->esc_like($criteria->query).'%'; $metadata=$this->database->prefix.'atlas_resource_metadata'; $where[]="(v.title LIKE %s OR v.summary LIKE %s OR r.slug LIKE %s OR EXISTS (SELECT 1 FROM `{$metadata}` m WHERE m.resource_id=r.id AND m.metadata_json LIKE %s))"; array_push($args,$like,$like,$like,$like); }
         if ($criteria->type !== null) { $where[]='r.resource_type = %s'; $args[]=$criteria->type; }
         $limit=$criteria->perPage+1; $offset=($criteria->page-1)*$criteria->perPage; $args[]=$limit; $args[]=$offset;
         $sourcePublisher="(SELECT s.publisher FROM `{$this->citations}` c INNER JOIN `{$this->sources}` s ON s.id = c.source_id WHERE c.resource_version_id = v.id ORDER BY c.display_order ASC, c.id ASC LIMIT 1)";

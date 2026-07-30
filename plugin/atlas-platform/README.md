@@ -2,7 +2,7 @@
 
 This directory contains the installable WordPress plugin for Project Atlas.
 
-## Current foundation (0.22.0)
+## Current foundation (0.55.0)
 
 - WordPress plugin bootstrap
 - Namespace autoloader
@@ -23,6 +23,21 @@ This directory contains the installable WordPress plugin for Project Atlas.
 - Protected release-readiness gate for manifest, migrations, modules, capabilities, PHP, and WordPress
 - Read-only Atlas product preview with working demonstration search
 - Conservative uninstall behavior that preserves data
+- Deterministic WordPress administration menu registration with Atlas Home as
+  the canonical parent destination
+- Capability-aware application navigation and organization context across all
+  Atlas administration screens
+- Expiring organization invitations with email-bound acceptance and revocation
+- Governed organization member roles and safe member removal
+- Validated organization branding settings with an administration preview
+- Structured resource discovery metadata captured during authoring
+- Immutable resource history, revision creation, and archival controls
+- Reviewer assignments, due dates, and append-only editorial notes
+- Metadata-aware discovery across structured resource classifications
+- Personal saved resources and reusable saved searches
+- Patient packet builder with ordered Resource references
+- Source document registry, anchored excerpts, extraction candidates, and reviewed payer requirement drafts
+- Packet item/status management, source freshness/status tracking, filtered payer requirement discovery, and requirement review transitions
 
 ## Install manually
 

@@ -66,11 +66,14 @@ if ($administrator !== null) {
 }
 
 $runner = $container->get(MigrationRunner::class);
+$initial = $runner->status();
+$applied = $runner->runPending();
 $before = $runner->status();
 $firstRepeat = $runner->runPending();
 $secondRepeat = $runner->runPending();
 $after = $runner->status();
-$assert($firstRepeat === [], 'activation leaves no pending migration work');
+$assert(count($applied) === count($initial['pending']), 'the integration gate applies every initially pending migration');
+$assert($firstRepeat === [], 'the first repeated migration run makes no changes');
 $assert($secondRepeat === [], 'a second complete migration run makes no changes');
 $assert($before['completed'] === $after['completed'], 'completed migration records remain stable across repeated runs');
 $assert($after['pending'] === [], 'the deployed migration inventory has no pending migrations');
@@ -119,6 +122,10 @@ $invalidMethod = rest_do_request(new WP_REST_Request('DELETE', '/atlas/v1/health
 $assert($invalidMethod->get_status() === 404, 'the health route rejects an invalid method');
 
 global $menu;
+$administrators = get_users(['role' => 'administrator', 'number' => 1, 'fields' => 'ID']);
+if ($administrators !== []) {
+    wp_set_current_user((int) $administrators[0]);
+}
 do_action('admin_menu');
 $atlasMenu = array_values(array_filter(
     is_array($menu) ? $menu : [],
@@ -126,6 +133,25 @@ $atlasMenu = array_values(array_filter(
 ));
 $assert(count($atlasMenu) === 1, 'WordPress registers one top-level Atlas navigation item');
 $assert(($atlasMenu[0][1] ?? '') === 'atlas_access', 'Atlas navigation uses the atlas_access destination capability');
+$assert(($atlasMenu[0][2] ?? '') === 'atlas', 'Atlas navigation keeps the application shell as its top-level destination');
+
+global $submenu;
+$atlasSubmenu = is_array($submenu['atlas'] ?? null) ? $submenu['atlas'] : [];
+$atlasSubmenuSlugs = array_column($atlasSubmenu, 2);
+$assert(($atlasSubmenuSlugs[0] ?? '') === 'atlas', 'Atlas home is registered before feature submenus');
+foreach (['atlas-organizations', 'atlas-resources', 'atlas-packets', 'atlas-sources', 'atlas-workflows'] as $submenuSlug) {
+    $assert(in_array($submenuSlug, $atlasSubmenuSlugs, true), sprintf('Atlas registers the %s submenu beneath the application shell', $submenuSlug));
+}
+foreach (['atlas_invite_member','atlas_accept_invitation','atlas_revoke_invitation','atlas_update_member_roles','atlas_remove_member','atlas_save_branding'] as $action) {
+    $assert(has_action('admin_post_' . $action) !== false, sprintf('the %s administration action is registered', $action));
+}
+foreach (['atlas_create_revision','atlas_archive_resource','atlas_assign_reviewer','atlas_add_review_note'] as $action) {
+    $assert(has_action('admin_post_' . $action) !== false, sprintf('the %s resource governance action is registered', $action));
+}
+foreach (['atlas_create_packet','atlas_add_packet_item','atlas_remove_packet_item','atlas_update_packet_status','atlas_create_source_document','atlas_update_source_status','atlas_create_source_section','atlas_create_extraction_candidate','atlas_review_extraction_candidate','atlas_create_payer_requirement','atlas_review_payer_requirement'] as $action) {
+    $assert(has_action('admin_post_' . $action) !== false, sprintf('the %s source-to-requirement action is registered', $action));
+}
+$assert(has_action('admin_post_nopriv_atlas_accept_invitation') !== false, 'logged-out invitation acceptance redirects through the invitation handler');
 
 $inventory = array_column((new RouteInventory())->all(), null, 'name');
 $assert(($inventory['atlas_home']['capability'] ?? '') === 'atlas_access', 'route inventory and Atlas navigation use the same capability');
@@ -133,6 +159,8 @@ $assert(($inventory['diagnostics']['capability'] ?? '') === 'atlas_view_diagnost
 $assert(($inventory['organizations_admin']['capability'] ?? '') === 'atlas_access', 'organization administration navigation and destination share atlas_access');
 $assert(($inventory['resources_admin']['capability'] ?? '') === 'atlas_access', 'resource library navigation and destination share atlas_access');
 $assert(($inventory['resource_create_admin']['capability'] ?? '') === 'atlas_create_resources', 'resource authoring navigation and destination share the authoring capability');
+$assert(($inventory['packet_builder']['capability'] ?? '') === 'atlas_create_packets', 'packet navigation and destination share packet capability');
+$assert(($inventory['source_workspace']['capability'] ?? '') === 'atlas_upload_sources', 'source navigation and destination share source capability');
 $assert(function_exists('wp_generate_uuid4'), 'the WordPress UUID API required by mutations is available');
 
 $testUserId = wp_insert_user([
