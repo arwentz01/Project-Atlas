@@ -1,5 +1,5 @@
 {
-  "version": "0.57.0",
+  "version": "0.59.0",
   "required": [
     "atlas-platform.php",
     "src/Plugin.php",
@@ -122,6 +122,8 @@
     "src/Resources/Personal/WordPressPersonalWorkspaceRepository.php",
     "src/Resources/Personal/PersonalWorkspaceAdminPage.php",
     "src/Resources/Packets/PacketRepository.php",
+    "src/Resources/Packets/PacketItemResolver.php",
+    "src/Resources/Packets/DefaultPacketItemResolver.php",
     "src/Resources/Packets/PacketService.php",
     "src/Resources/Packets/WordPressPacketRepository.php",
     "src/Resources/Packets/PacketBuilderAdminPage.php",

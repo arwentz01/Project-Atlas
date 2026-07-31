@@ -106,6 +106,23 @@ final class WordPressSourceWorkspaceRepository implements SourceWorkspaceReposit
         return $this->db->update($this->db->prefix . 'atlas_payer_requirements', ['review_status' => $status, 'reviewed_by' => $user, 'reviewed_at' => gmdate('Y-m-d H:i:s'), 'updated_at' => gmdate('Y-m-d H:i:s')], $where, ['%s','%d','%s','%s'], $formats) !== false;
     }
 
+    public function findRequirement(string $id, ?string $org): ?array
+    {
+        $t = $this->db->prefix . 'atlas_payer_requirements';
+        $row = $this->db->get_row($this->db->prepare("SELECT * FROM `{$t}` WHERE id=%s AND (organization_id IS NULL OR organization_id=%s) LIMIT 1", $id, (string) $org), ARRAY_A);
+        return is_array($row) ? $row : null;
+    }
+
+    public function findRequirementSource(string $candidateId, ?string $org): ?array
+    {
+        $c = $this->db->prefix . 'atlas_extraction_candidates';
+        $s = $this->db->prefix . 'atlas_source_sections';
+        $d = $this->db->prefix . 'atlas_source_documents';
+        $sql = "SELECT c.id candidate_id,c.statement,c.status candidate_status,s.id section_id,s.page_number,s.section_label,s.text_excerpt,s.anchor,d.id document_id,d.title document_title,d.publisher,d.source_url,d.effective_date,d.retrieved_at FROM `{$c}` c INNER JOIN `{$s}` s ON s.id=c.source_section_id INNER JOIN `{$d}` d ON d.id=s.source_document_id WHERE c.id=%s AND (c.organization_id IS NULL OR c.organization_id=%s) AND (d.organization_id IS NULL OR d.organization_id=%s) LIMIT 1";
+        $row = $this->db->get_row($this->db->prepare($sql, $candidateId, (string) $org, (string) $org), ARRAY_A);
+        return is_array($row) ? $row : null;
+    }
+
     public function documents(?string $org, int $limit = 25): array { return $this->rows('atlas_source_documents', $org, $limit, 'created_at'); }
     public function candidates(?string $org, int $limit = 25): array { return $this->rows('atlas_extraction_candidates', $org, $limit, 'created_at'); }
 

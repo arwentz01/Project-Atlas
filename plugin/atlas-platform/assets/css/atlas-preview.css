@@ -273,6 +273,8 @@
 .atlas-packet-items h2 { margin: 0 0 6px; font-size: 20px; }
 .atlas-packet-items small { color: #647985; }
 .atlas-packet-preview-controls { break-after: avoid; }
+.atlas-packet-item .atlas-resource-content { margin-top: 14px; padding: 18px; }
+.atlas-packet-item .atlas-trust-strip { margin: 14px 0; }
 
 @media (max-width: 960px) {
     .atlas-layout { grid-template-columns: 76px minmax(0, 1fr); }
@@ -328,5 +330,5 @@
 @media (max-width:780px){.atlas-resource-header,.atlas-resource-footer{display:block}.atlas-print-button{margin-top:15px}.atlas-resource-columns{grid-template-columns:1fr}}
 @media print {
     #adminmenumain,#wpadminbar,#screen-meta-links,.atlas-resource-breadcrumb,.atlas-print-button,.update-nag,.notice { display:none!important; }
-    html.wp-toolbar{padding-top:0}.atlas-preview-wrap{margin:0}.atlas-shell{min-height:0;border:0;box-shadow:none}.atlas-resource-main{max-width:none;padding:0}.atlas-resource-columns{grid-template-columns:2fr 1fr}.atlas-resource-content,.atlas-resource-sources{break-inside:avoid;border-color:#999}.atlas-trust-strip{background:#fff;border-color:#777}#wpcontent{margin-left:0}.atlas-patient-preview{margin:0;border-left:0;border-right:0;border-bottom:0}.atlas-packet-preview-controls,.atlas-patient-preview~*,.atlas-patient-preview+*{display:none}.atlas-authoring-form,.atlas-admin-panel:has(.atlas-authoring-form){display:none}.atlas-packet-print{display:block!important}.atlas-packet-items article{break-inside:avoid}
+    html.wp-toolbar{padding-top:0}.atlas-preview-wrap{margin:0}.atlas-shell{min-height:0;border:0;box-shadow:none}.atlas-resource-main{max-width:none;padding:0}.atlas-resource-columns{grid-template-columns:2fr 1fr}.atlas-resource-content,.atlas-resource-sources{break-inside:avoid;border-color:#999}.atlas-trust-strip{background:#fff;border-color:#777}#wpcontent{margin-left:0}.atlas-patient-preview{margin:0;border-left:0;border-right:0;border-bottom:0}.atlas-packet-preview-controls,.atlas-patient-preview~*,.atlas-patient-preview+*{display:none}.atlas-authoring-form,.atlas-admin-panel:has(.atlas-authoring-form){display:none}.atlas-packet-print{display:block!important}.atlas-packet-items article{break-inside:avoid}.atlas-packet-item .atlas-resource-content{border:0;padding:0}
 }

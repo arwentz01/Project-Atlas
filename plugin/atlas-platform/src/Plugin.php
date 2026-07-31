@@ -46,6 +46,8 @@ use Atlas\Platform\Resources\Search\WordPressResourceSearchRepository;
 use Atlas\Platform\Resources\Personal\PersonalWorkspaceRepository;
 use Atlas\Platform\Resources\Personal\WordPressPersonalWorkspaceRepository;
 use Atlas\Platform\Resources\Packets\PacketRepository;
+use Atlas\Platform\Resources\Packets\PacketItemResolver;
+use Atlas\Platform\Resources\Packets\DefaultPacketItemResolver;
 use Atlas\Platform\Resources\Packets\WordPressPacketRepository;
 use Atlas\Platform\Resources\Sources\SourceWorkspaceRepository;
 use Atlas\Platform\Resources\Sources\WordPressSourceWorkspaceRepository;
@@ -107,6 +109,7 @@ final class Plugin
         $this->container->instance(ResourceSearchRepository::class, new WordPressResourceSearchRepository($wpdb));
         $this->container->instance(PersonalWorkspaceRepository::class, new WordPressPersonalWorkspaceRepository($wpdb));
         $this->container->instance(PacketRepository::class, new WordPressPacketRepository($wpdb));
+        $this->container->singleton(PacketItemResolver::class, DefaultPacketItemResolver::class);
         $this->container->instance(SourceWorkspaceRepository::class, new WordPressSourceWorkspaceRepository($wpdb));
         $this->container->instance(EditorialRepository::class,new WordPressEditorialRepository($wpdb,$this->container->get(EditorialTransitionPolicy::class)));
         $this->container->instance(EditorialQueueRepository::class,new WordPressEditorialQueueRepository($wpdb));

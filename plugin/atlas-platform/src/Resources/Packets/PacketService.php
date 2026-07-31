@@ -6,7 +6,7 @@ use InvalidArgumentException;
 
 final class PacketService
 {
-    public function __construct(private PacketRepository $packets, private AuditRecorder $audit) {}
+    public function __construct(private PacketRepository $packets, private AuditRecorder $audit, private PacketItemResolver $resolver) {}
 
     public function create(string $organizationId, int $userId, array $input): string
     {
@@ -61,7 +61,7 @@ final class PacketService
         if ($view === null) { return null; }
         $items = [];
         foreach ($view['items'] as $item) {
-            $items[] = [
+            $normalized = [
                 'id' => (string) ($item['id'] ?? ''),
                 'type' => (string) ($item['item_type'] ?? 'resource'),
                 'item_id' => (string) ($item['item_id'] ?? ''),
@@ -69,6 +69,7 @@ final class PacketService
                 'notes' => (string) ($item['notes'] ?? ''),
                 'display_order' => (int) ($item['display_order'] ?? 0),
             ];
+            $items[] = $this->resolver->resolve($normalized, $organizationId);
         }
         return ['packet' => $view['packet'], 'items' => $items, 'print_title' => (string) ($view['packet']['name'] ?? __('Patient packet', 'atlas-platform'))];
     }
