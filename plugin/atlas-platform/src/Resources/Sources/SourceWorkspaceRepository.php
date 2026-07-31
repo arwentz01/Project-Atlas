@@ -11,6 +11,12 @@ interface SourceWorkspaceRepository
     public function reviewCandidate(string $id, string $status, int $userId): bool;
     public function createRequirement(?string $organizationId, int $userId, array $input): string;
     public function reviewRequirement(string $id, ?string $organizationId, string $status, int $userId): bool;
+    public function createInsuranceProfile(?string $organizationId, int $userId, array $input): string;
+    /** @return list<array<string,mixed>> */
+    public function insuranceProfiles(?string $organizationId, int $limit = 25, array $criteria = []): array;
+    public function createDmeCategory(array $input): string;
+    /** @return list<array<string,mixed>> */
+    public function dmeCategories(int $limit = 100, array $criteria = []): array;
     public function findRequirement(string $id, ?string $organizationId): ?array;
     /** @return array<string,mixed>|null */
     public function findRequirementSource(string $candidateId, ?string $organizationId): ?array;

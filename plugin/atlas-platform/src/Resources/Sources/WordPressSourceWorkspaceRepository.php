@@ -77,14 +77,22 @@ final class WordPressSourceWorkspaceRepository implements SourceWorkspaceReposit
     {
         $id = wp_generate_uuid4();
         $now = gmdate('Y-m-d H:i:s');
+        $requiredForms = wp_json_encode(is_array($in['required_forms'] ?? null) ? $in['required_forms'] : []);
+        if (! is_string($requiredForms)) { $requiredForms = '[]'; }
         $this->db->insert($this->db->prefix . 'atlas_payer_requirements', [
             'id' => $id,
             'organization_id' => $org,
             'payer' => $this->txt($in, 'payer', 191),
             'plan_name' => $this->txt($in, 'plan_name', 191),
             'topic' => $this->txt($in, 'topic', 191),
+            'dme_category_slug' => sanitize_title((string) ($in['dme_category_slug'] ?? '')),
             'jurisdiction' => $this->txt($in, 'jurisdiction', 120),
             'requirement_type' => sanitize_key((string) ($in['requirement_type'] ?? 'documentation')),
+            'prior_authorization_status' => sanitize_key((string) ($in['prior_authorization_status'] ?? 'unknown')),
+            'frequency_limit' => $this->txt($in, 'frequency_limit', 191),
+            'replacement_interval' => $this->txt($in, 'replacement_interval', 191),
+            'required_forms_json' => $requiredForms,
+            'coverage_criteria_text' => $this->txt($in, 'coverage_criteria_text', 5000),
             'requirement_text' => $this->txt($in, 'requirement_text', 5000),
             'source_candidate_id' => $this->txt($in, 'source_candidate_id', 36),
             'review_status' => 'draft',
@@ -93,8 +101,71 @@ final class WordPressSourceWorkspaceRepository implements SourceWorkspaceReposit
             'created_by' => $user,
             'created_at' => $now,
             'updated_at' => $now,
-        ], ['%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%d','%s','%s']);
+        ], ['%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%d','%s','%s']);
         return $id;
+    }
+
+    public function createInsuranceProfile(?string $org, int $user, array $in): string
+    {
+        $id = wp_generate_uuid4();
+        $now = gmdate('Y-m-d H:i:s');
+        $this->db->insert($this->db->prefix . 'atlas_insurance_profiles', [
+            'id' => $id,
+            'organization_id' => $org,
+            'payer' => $this->txt($in, 'payer', 191),
+            'plan_name' => $this->txt($in, 'plan_name', 191),
+            'line_of_business' => sanitize_key((string) ($in['line_of_business'] ?? '')),
+            'jurisdiction' => $this->txt($in, 'jurisdiction', 120),
+            'portal_url' => $this->txt($in, 'portal_url', 500) ?: null,
+            'phone' => $this->txt($in, 'phone', 80),
+            'effective_date' => $this->date($in['effective_date'] ?? null),
+            'status' => sanitize_key((string) ($in['status'] ?? 'active')),
+            'created_by' => $user,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ], ['%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%d','%s','%s']);
+        return $id;
+    }
+
+    public function insuranceProfiles(?string $org, int $limit = 25, array $criteria = []): array
+    {
+        $t = $this->db->prefix . 'atlas_insurance_profiles';
+        $limit = max(1, min(100, $limit));
+        $payer = $this->txt($criteria, 'payer', 191);
+        $jurisdiction = $this->txt($criteria, 'jurisdiction', 120);
+        $status = sanitize_key((string) ($criteria['status'] ?? ''));
+        $sql = "SELECT * FROM `{$t}` WHERE (organization_id IS NULL OR organization_id=%s)";
+        $args = [(string) $org];
+        if ($payer !== '') { $sql .= ' AND payer LIKE %s'; $args[] = '%' . $this->db->esc_like($payer) . '%'; }
+        if ($jurisdiction !== '') { $sql .= ' AND jurisdiction=%s'; $args[] = $jurisdiction; }
+        if ($status !== '') { $sql .= ' AND status=%s'; $args[] = $status; }
+        $sql .= ' ORDER BY payer,plan_name LIMIT %d';
+        $args[] = $limit;
+        $rows = $this->db->get_results($this->db->prepare($sql, ...$args), ARRAY_A);
+        return is_array($rows) ? $rows : [];
+    }
+
+    public function createDmeCategory(array $in): string
+    {
+        $id = wp_generate_uuid4();
+        $this->db->insert($this->db->prefix . 'atlas_dme_categories', [
+            'id' => $id,
+            'slug' => sanitize_title((string) ($in['slug'] ?? '')),
+            'label' => $this->txt($in, 'label', 191),
+            'description' => $this->txt($in, 'description', 2000),
+            'status' => sanitize_key((string) ($in['status'] ?? 'active')),
+            'created_at' => gmdate('Y-m-d H:i:s'),
+        ], ['%s','%s','%s','%s','%s','%s']);
+        return $id;
+    }
+
+    public function dmeCategories(int $limit = 100, array $criteria = []): array
+    {
+        $t = $this->db->prefix . 'atlas_dme_categories';
+        $limit = max(1, min(200, $limit));
+        $status = sanitize_key((string) ($criteria['status'] ?? 'active'));
+        $rows = $this->db->get_results($this->db->prepare("SELECT * FROM `{$t}` WHERE status=%s ORDER BY label LIMIT %d", $status, $limit), ARRAY_A);
+        return is_array($rows) ? $rows : [];
     }
 
     public function reviewRequirement(string $id, ?string $org, string $status, int $user): bool
@@ -154,11 +225,21 @@ final class WordPressSourceWorkspaceRepository implements SourceWorkspaceReposit
         $limit = max(1, min(100, $limit));
         $payer = $this->txt($criteria, 'payer', 191);
         $topic = $this->txt($criteria, 'topic', 191);
+        $dmeSlug = sanitize_title((string) ($criteria['dme_category_slug'] ?? ''));
         $status = sanitize_key((string) ($criteria['status'] ?? ''));
         $sql = "SELECT * FROM `{$t}` WHERE (organization_id IS NULL OR organization_id=%s)";
         $args = [(string) $org];
         if ($payer !== '') { $sql .= ' AND payer LIKE %s'; $args[] = '%' . $this->db->esc_like($payer) . '%'; }
         if ($topic !== '') { $sql .= ' AND topic LIKE %s'; $args[] = '%' . $this->db->esc_like($topic) . '%'; }
+        if ($dmeSlug !== '') { $sql .= ' AND dme_category_slug=%s'; $args[] = $dmeSlug; }
+        $plan = $this->txt($criteria, 'plan_name', 191);
+        $jurisdiction = $this->txt($criteria, 'jurisdiction', 120);
+        $type = sanitize_key((string) ($criteria['requirement_type'] ?? ''));
+        $priorAuth = sanitize_key((string) ($criteria['prior_authorization_status'] ?? ''));
+        if ($plan !== '') { $sql .= ' AND (plan_name=%s OR plan_name=' . "''" . ')'; $args[] = $plan; }
+        if ($jurisdiction !== '') { $sql .= ' AND (jurisdiction=%s OR jurisdiction=' . "''" . ')'; $args[] = $jurisdiction; }
+        if ($type !== '') { $sql .= ' AND requirement_type=%s'; $args[] = $type; }
+        if ($priorAuth !== '') { $sql .= ' AND prior_authorization_status=%s'; $args[] = $priorAuth; }
         if ($status !== '') { $sql .= ' AND review_status=%s'; $args[] = $status; }
         $sql .= ' ORDER BY updated_at DESC LIMIT %d';
         $args[] = $limit;

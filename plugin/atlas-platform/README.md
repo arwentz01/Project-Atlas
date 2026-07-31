@@ -2,7 +2,7 @@
 
 This directory contains the installable WordPress plugin for Project Atlas.
 
-## Current foundation (0.62.0)
+## Current foundation (0.67.0)
 
 - WordPress plugin bootstrap
 - Namespace autoloader
@@ -50,6 +50,11 @@ This directory contains the installable WordPress plugin for Project Atlas.
 - Packet readiness gates, snapshot history/detail reprint, and wp-admin patient resource picker
 - Requirement review lanes, freshness alerts, checklist status controls, evidence audit state, and internal checklist export
 - Explicit patient-facing/internal-only metadata normalization during resource authoring
+- Non-PHI insurance profile registry, DME category catalog, and payer/DME requirement matching
+- DME-specific payer requirement details for category slug, prior authorization, frequency limits, replacement intervals, required forms, and coverage criteria
+- DME requirement matching now returns readiness summaries, missing-field lists, and ready-match counts
+- Internal DME coverage summaries combine payer requirement details, readiness, checklist items, and source evidence without becoming patient packet content
+- Internal prior authorization workups summarize next actions, blocking gaps, staff tasks, and required forms without external submission or PHI
 
 ## Install manually
 

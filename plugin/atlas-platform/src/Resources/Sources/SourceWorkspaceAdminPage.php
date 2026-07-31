@@ -69,6 +69,19 @@ final class SourceWorkspaceAdminPage
         $this->attempt(fn() => $this->service->reviewRequirement(sanitize_text_field(wp_unslash((string) ($_POST['requirement_id'] ?? ''))), $org?->id, sanitize_key(wp_unslash((string) ($_POST['status'] ?? ''))), get_current_user_id()));
     }
 
+    public function createInsuranceProfile(): void
+    {
+        $this->guard('atlas_review_extractions', 'atlas_create_insurance_profile');
+        $org = $this->orgs->resolveForUser(get_current_user_id());
+        $this->attempt(fn() => $this->service->createInsuranceProfile($org?->id, get_current_user_id(), wp_unslash($_POST)));
+    }
+
+    public function createDmeCategory(): void
+    {
+        $this->guard('atlas_review_extractions', 'atlas_create_dme_category');
+        $this->attempt(fn() => $this->service->createDmeCategory(get_current_user_id(), wp_unslash($_POST)));
+    }
+
     public function updateChecklist(): void
     {
         $this->guard('atlas_review_extractions', 'atlas_update_checklist_state');
@@ -92,6 +105,9 @@ final class SourceWorkspaceAdminPage
         $documents = $dashboard['documents'];
         $candidates = $dashboard['candidates'];
         $requirements = $this->service->requirements($org?->id, $criteria, 50);
+        $insuranceProfiles = $dashboard['insurance_profiles'] ?? [];
+        $dmeCategories = $dashboard['dme_categories'] ?? [];
+        $dmeMatches = $this->service->dmeRequirementMatches($org?->id, ['payer'=>$criteria['payer'], 'dme_category'=>$criteria['topic'], 'jurisdiction'=>''], 25);
         $checklist = $this->service->documentationChecklist($org?->id, $criteria + ['status' => $criteria['status'] ?: 'published'], 50);
         $evidenceId = sanitize_text_field(wp_unslash((string) ($_GET['requirement_id'] ?? '')));
         $evidence = $evidenceId === '' ? null : $this->service->requirementEvidence($evidenceId, $org?->id);
