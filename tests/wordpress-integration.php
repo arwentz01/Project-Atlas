@@ -94,9 +94,15 @@ $assert(isset($routes['/atlas/v1/resource-versions/(?P<id>[a-fA-F0-9-]{36})/tran
 $assert(isset($routes['/atlas/v1/sources/dashboard']), 'the source workspace dashboard route is registered');
 $assert(isset($routes['/atlas/v1/sources/documents']), 'the source document creation route is registered');
 $assert(isset($routes['/atlas/v1/payer-requirements']), 'the payer requirement collection route is registered');
+$assert(isset($routes['/atlas/v1/documentation-checklists']), 'the documentation checklist route is registered');
+$assert(isset($routes['/atlas/v1/documentation-checklists/export']), 'the documentation checklist export route is registered');
+$assert(isset($routes['/atlas/v1/payer-requirements/(?P<id>[a-fA-F0-9-]{36})/evidence']), 'the payer requirement evidence route is registered');
+$assert(isset($routes['/atlas/v1/payer-requirements/(?P<id>[a-fA-F0-9-]{36})/checklist']), 'the payer requirement checklist update route is registered');
 $assert(isset($routes['/atlas/v1/payer-requirements/(?P<id>[a-fA-F0-9-]{36})/review']), 'the payer requirement review route is registered');
 $assert(isset($routes['/atlas/v1/packets']), 'the packet creation route is registered');
+$assert(isset($routes['/atlas/v1/packets/options']), 'the packet patient resource options route is registered');
 $assert(isset($routes['/atlas/v1/packets/(?P<id>[a-fA-F0-9-]{36})']), 'the packet preview route is registered');
+$assert(isset($routes['/atlas/v1/packets/(?P<id>[a-fA-F0-9-]{36})/snapshots']), 'the packet snapshot route is registered');
 $assert(isset($routes['/atlas/v1/patient-resources/(?P<id>[a-fA-F0-9-]{36})/variants']), 'the patient resource variant route is registered');
 $assert(isset($routes['/atlas/v1/workflows/(?P<id>[a-fA-F0-9-]{36})']), 'the workflow detail route is registered');
 $assert(isset($routes['/atlas/v1/workflows/drafts']), 'the workflow draft creation route is registered');

@@ -1,5 +1,5 @@
 {
-  "version": "0.59.0",
+  "version": "0.62.0",
   "required": [
     "atlas-platform.php",
     "src/Plugin.php",
@@ -124,8 +124,10 @@
     "src/Resources/Packets/PacketRepository.php",
     "src/Resources/Packets/PacketItemResolver.php",
     "src/Resources/Packets/DefaultPacketItemResolver.php",
+    "src/Resources/Packets/PacketSnapshotRepository.php",
     "src/Resources/Packets/PacketService.php",
     "src/Resources/Packets/WordPressPacketRepository.php",
+    "src/Resources/Packets/WordPressPacketSnapshotRepository.php",
     "src/Resources/Packets/PacketBuilderAdminPage.php",
     "src/Resources/Sources/SourceWorkspaceRepository.php",
     "src/Resources/Sources/SourceWorkspaceService.php",
@@ -161,6 +163,7 @@
     "migrations/0014_patient_resource_variant_lifecycle.php",
     "migrations/0015_packets_sources_requirements.php",
     "migrations/0016_source_requirement_operations.php",
+    "migrations/0017_packet_snapshots_and_checklist_state.php",
     "README.md",
     "release-manifest.json"
   ]

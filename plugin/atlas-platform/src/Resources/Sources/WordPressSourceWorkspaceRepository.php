@@ -123,6 +123,28 @@ final class WordPressSourceWorkspaceRepository implements SourceWorkspaceReposit
         return is_array($row) ? $row : null;
     }
 
+    public function saveChecklistState(string $requirementId, ?string $org, string $hash, string $label, string $status, string $notes, int $userId): bool
+    {
+        $table = $this->db->prefix . 'atlas_requirement_checklist_state';
+        $existing = $this->db->get_var($this->db->prepare("SELECT id FROM `{$table}` WHERE requirement_id=%s AND checklist_hash=%s LIMIT 1", $requirementId, $hash));
+        $data = ['requirement_id'=>$requirementId,'organization_id'=>$org,'checklist_hash'=>$hash,'label'=>substr($label,0,1000),'status'=>$status,'notes'=>substr($notes,0,1000),'updated_by'=>$userId,'updated_at'=>gmdate('Y-m-d H:i:s')];
+        if (is_string($existing) && $existing !== '') { return $this->db->update($table, $data, ['id'=>$existing], ['%s','%s','%s','%s','%s','%s','%d','%s'], ['%s']) !== false; }
+        $data['id'] = wp_generate_uuid4();
+        return $this->db->insert($table, $data, ['%s','%s','%s','%s','%s','%s','%d','%s','%s']) !== false;
+    }
+
+    public function checklistState(array $requirementIds, ?string $org): array
+    {
+        $ids = array_values(array_filter(array_map('strval', $requirementIds)));
+        if ($ids === []) { return []; }
+        $table = $this->db->prefix . 'atlas_requirement_checklist_state';
+        $placeholders = implode(',', array_fill(0, count($ids), '%s'));
+        $rows = $this->db->get_results($this->db->prepare("SELECT * FROM `{$table}` WHERE requirement_id IN ({$placeholders}) AND (organization_id IS NULL OR organization_id=%s)", ...array_merge($ids, [(string) $org])), ARRAY_A);
+        $out = [];
+        foreach (is_array($rows) ? $rows : [] as $row) { $out[(string)$row['requirement_id'] . ':' . (string)$row['checklist_hash']] = $row; }
+        return $out;
+    }
+
     public function documents(?string $org, int $limit = 25): array { return $this->rows('atlas_source_documents', $org, $limit, 'created_at'); }
     public function candidates(?string $org, int $limit = 25): array { return $this->rows('atlas_extraction_candidates', $org, $limit, 'created_at'); }
 

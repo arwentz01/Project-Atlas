@@ -31,20 +31,7 @@ final class DefaultPacketItemResolver implements PacketItemResolver
             ];
         }
         if ($type === 'requirement') {
-            $requirement = $this->sources->findRequirement($id, $organizationId);
-            if ($requirement === null) { return $this->unresolved($item, $fallbackTitle, 'Requirement unavailable'); }
-            $provenance = $this->requirementProvenance($requirement, $organizationId);
-            return [
-                'id' => (string) ($item['id'] ?? ''),
-                'type' => 'requirement',
-                'item_id' => $id,
-                'title' => trim((string) $requirement['payer'] . ' - ' . (string) $requirement['topic']),
-                'summary' => (string) ($requirement['requirement_type'] ?? 'requirement'),
-                'html' => '<p>' . esc_html((string) ($requirement['requirement_text'] ?? '')) . '</p>',
-                'notes' => (string) ($item['notes'] ?? ''),
-                'status' => (string) ($requirement['review_status'] ?? 'draft'),
-                'provenance' => $provenance,
-            ];
+            return $this->unresolved($item, $fallbackTitle, 'Payer requirements are internal documentation guidance and are not rendered in patient packets.');
         }
         return [
             'id' => (string) ($item['id'] ?? ''),

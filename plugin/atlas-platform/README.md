@@ -2,7 +2,7 @@
 
 This directory contains the installable WordPress plugin for Project Atlas.
 
-## Current foundation (0.59.0)
+## Current foundation (0.62.0)
 
 - WordPress plugin bootstrap
 - Namespace autoloader
@@ -41,7 +41,15 @@ This directory contains the installable WordPress plugin for Project Atlas.
 - REST-backed source workspace service for audited payer requirement creation, discovery, and review
 - REST-backed packet creation, preview, item validation, audit events, and print-safe packet rendering
 - Packet content resolver for printable Resource bodies, structured Requirement text, and visible provenance
-- Source-anchored Requirement provenance in packet previews, including source document, page/section, excerpt, extraction statement, and source dates
+- Source-anchored Requirement provenance for internal evidence review, including source document, page/section, excerpt, extraction statement, and source dates
+- Patient packet guardrails that separate patient-facing materials from internal payer requirements
+- Internal documentation checklists and requirement evidence detail for staff documentation workflows
+- Patient packet resource picker API and catalog-backed patient-facing resource validation
+- Immutable patient packet print snapshots
+- Persistent internal documentation checklist state with audit events
+- Packet readiness gates, snapshot history/detail reprint, and wp-admin patient resource picker
+- Requirement review lanes, freshness alerts, checklist status controls, evidence audit state, and internal checklist export
+- Explicit patient-facing/internal-only metadata normalization during resource authoring
 
 ## Install manually
 
