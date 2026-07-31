@@ -108,6 +108,8 @@ final class SourceWorkspaceAdminPage
         $insuranceProfiles = $dashboard['insurance_profiles'] ?? [];
         $dmeCategories = $dashboard['dme_categories'] ?? [];
         $dmeMatches = $this->service->dmeRequirementMatches($org?->id, ['payer'=>$criteria['payer'], 'dme_category'=>$criteria['topic'], 'jurisdiction'=>''], 25);
+        $dmeCoverageOps = $this->service->dmeCoverageOperationsDashboard($org?->id, ['payer'=>$criteria['payer'], 'topic'=>$criteria['topic']]);
+        $priorAuthPrep = $this->service->priorAuthorizationPrepWorkspace($org?->id, ['payer'=>$criteria['payer'], 'topic'=>$criteria['topic']]);
         $checklist = $this->service->documentationChecklist($org?->id, $criteria + ['status' => $criteria['status'] ?: 'published'], 50);
         $evidenceId = sanitize_text_field(wp_unslash((string) ($_GET['requirement_id'] ?? '')));
         $evidence = $evidenceId === '' ? null : $this->service->requirementEvidence($evidenceId, $org?->id);

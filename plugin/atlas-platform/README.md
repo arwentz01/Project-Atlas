@@ -2,7 +2,7 @@
 
 This directory contains the installable WordPress plugin for Project Atlas.
 
-## Current foundation (0.67.0)
+## Current foundation (0.71.0)
 
 - WordPress plugin bootstrap
 - Namespace autoloader
@@ -55,6 +55,10 @@ This directory contains the installable WordPress plugin for Project Atlas.
 - DME requirement matching now returns readiness summaries, missing-field lists, and ready-match counts
 - Internal DME coverage summaries combine payer requirement details, readiness, checklist items, and source evidence without becoming patient packet content
 - Internal prior authorization workups summarize next actions, blocking gaps, staff tasks, and required forms without external submission or PHI
+- Filtered internal coverage-summary exports provide operational counts for ready requirements and prior-authorization prep
+- Sources admin exposes the internal coverage-summary export JSON from the insurance and DME matching panel
+- Prior Authorization Prep Workspace summarizes required workups, ready/blocked counts, task previews, and export access in the Sources admin
+- DME Coverage Operations Dashboard summarizes readiness, prior authorization buckets, and action rows for published DME requirements
 
 ## Install manually
 

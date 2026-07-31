@@ -99,6 +99,7 @@ $assert(isset($routes['/atlas/v1/dme-categories']), 'the DME category route is r
 $assert(isset($routes['/atlas/v1/dme-requirement-matches']), 'the DME requirement matching route is registered');
 $assert(isset($routes['/atlas/v1/documentation-checklists']), 'the documentation checklist route is registered');
 $assert(isset($routes['/atlas/v1/documentation-checklists/export']), 'the documentation checklist export route is registered');
+$assert(isset($routes['/atlas/v1/coverage-summaries/export']), 'the coverage summary export route is registered');
 $assert(isset($routes['/atlas/v1/payer-requirements/(?P<id>[a-fA-F0-9-]{36})/evidence']), 'the payer requirement evidence route is registered');
 $assert(isset($routes['/atlas/v1/payer-requirements/(?P<id>[a-fA-F0-9-]{36})/coverage-summary']), 'the payer requirement coverage summary route is registered');
 $assert(isset($routes['/atlas/v1/payer-requirements/(?P<id>[a-fA-F0-9-]{36})/checklist']), 'the payer requirement checklist update route is registered');
