@@ -21,7 +21,6 @@ final class PreviewModule implements Module
         // links for the Atlas navigation.
         add_action('admin_menu', [$this->page, 'register'], 5);
         add_action('admin_enqueue_scripts', [$this->page, 'enqueueAssets']);
-        add_action('in_admin_header', [$this->page, 'renderApplicationNavigation']);
     }
     public function health(): array { return ['status' => 'ok', 'mode' => 'preview']; }
 }

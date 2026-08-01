@@ -27,8 +27,7 @@ final class PreviewAdminPage
 
     public function enqueueAssets(string $hookSuffix): void
     {
-        $page = sanitize_key(wp_unslash((string) ($_GET['page'] ?? '')));
-        if ($hookSuffix !== $this->hookSuffix && ! str_starts_with($page, 'atlas')) {
+        if ($hookSuffix !== $this->hookSuffix) {
             return;
         }
 
@@ -38,25 +37,6 @@ final class PreviewAdminPage
             [],
             ATLAS_PLATFORM_VERSION
         );
-    }
-
-    public function renderApplicationNavigation(): void
-    {
-        $current = sanitize_key(wp_unslash((string) ($_GET['page'] ?? '')));
-        if (! str_starts_with($current, 'atlas') || ! current_user_can('atlas_access')) {
-            return;
-        }
-
-        $user = wp_get_current_user();
-        $organization = $this->organizations->resolveForUser((int) $user->ID);
-        echo '<nav class="atlas-global-nav" aria-label="' . esc_attr__('Atlas application navigation', 'atlas-platform') . '">';
-        echo '<a class="atlas-global-brand" href="' . esc_url(admin_url('admin.php?page=atlas')) . '"><span aria-hidden="true">A</span><strong>Atlas</strong></a>';
-        echo '<div class="atlas-global-links">';
-        foreach ($this->navigation->visible($current) as $item) {
-            echo '<a class="' . esc_attr($item['current'] ? 'is-active' : '') . '" href="' . esc_url($item['url']) . '"' . ($item['current'] ? ' aria-current="page"' : '') . '>';
-            echo '<span class="dashicons ' . esc_attr($item['icon']) . '" aria-hidden="true"></span>' . esc_html($item['label']) . '</a>';
-        }
-        echo '</div><span class="atlas-global-context">' . esc_html($organization?->name ?? __('No organization selected', 'atlas-platform')) . '</span></nav>';
     }
 
     public function render(): void

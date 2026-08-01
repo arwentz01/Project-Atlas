@@ -12,7 +12,6 @@ final class AdminNavigation
         $items = [
             ['slug' => 'atlas', 'label' => __('Home', 'atlas-platform'), 'icon' => 'dashicons-admin-home', 'url' => admin_url('admin.php?page=atlas'), 'capability' => 'atlas_access'],
             ['slug' => 'atlas-diagnostics', 'label' => __('Diagnostics', 'atlas-platform'), 'icon' => 'dashicons-admin-tools', 'url' => admin_url('tools.php?page=atlas-diagnostics'), 'capability' => 'atlas_view_diagnostics'],
-            ['slug' => 'atlas-personal', 'label' => __('My Atlas', 'atlas-platform'), 'icon' => 'dashicons-star-filled', 'url' => admin_url('admin.php?page=atlas-personal'), 'capability' => 'atlas_access'],
         ];
 
         $visible = [];

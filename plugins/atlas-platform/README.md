@@ -94,3 +94,4 @@ The Organizations foundation provides scoped repository contracts, current-conte
 The Resources foundation provides immutable versions, sources, citations, tenant-aware reads and search, idempotent draft authoring, and editorial review/publication transitions. A complete administration UI and seed content remain future builds.
 
 `GET /wp-json/atlas/v1/resources` provides bounded search over published global and current-organization resources with optional type, page, and page-size parameters.
+
