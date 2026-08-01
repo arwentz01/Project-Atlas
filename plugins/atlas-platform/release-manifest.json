@@ -1,5 +1,5 @@
 {
-  "version": "0.71.0",
+  "version": "0.74.0",
   "required": [
     "atlas-platform.php",
     "src/Plugin.php",
@@ -166,6 +166,7 @@
     "migrations/0017_packet_snapshots_and_checklist_state.php",
     "migrations/0018_insurance_dme_foundation.php",
     "migrations/0019_dme_requirement_details.php",
+    "migrations/0020_payer_requirement_revisions.php",
     "README.md",
     "release-manifest.json"
   ]

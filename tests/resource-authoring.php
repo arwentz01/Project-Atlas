@@ -1,6 +1,6 @@
 <?php
 declare(strict_types=1);
-define('ATLAS_PLATFORM_DIR', dirname(__DIR__) . '/plugin/atlas-platform/');
+define('ATLAS_PLATFORM_DIR', dirname(__DIR__) . '/plugins/atlas-platform/');
 require ATLAS_PLATFORM_DIR . 'src/Autoloader.php';
 Atlas\Platform\Autoloader::register();
 if (! function_exists('wp_json_encode')) { function wp_json_encode($value): string { return json_encode($value, JSON_THROW_ON_ERROR); } }

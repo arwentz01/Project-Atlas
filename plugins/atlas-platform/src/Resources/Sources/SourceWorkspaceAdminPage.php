@@ -111,8 +111,9 @@ final class SourceWorkspaceAdminPage
         $dmeCoverageOps = $this->service->dmeCoverageOperationsDashboard($org?->id, ['payer'=>$criteria['payer'], 'topic'=>$criteria['topic']]);
         $priorAuthPrep = $this->service->priorAuthorizationPrepWorkspace($org?->id, ['payer'=>$criteria['payer'], 'topic'=>$criteria['topic']]);
         $checklist = $this->service->documentationChecklist($org?->id, $criteria + ['status' => $criteria['status'] ?: 'published'], 50);
-        $evidenceId = sanitize_text_field(wp_unslash((string) ($_GET['requirement_id'] ?? '')));
-        $evidence = $evidenceId === '' ? null : $this->service->requirementEvidence($evidenceId, $org?->id);
+        $detailId = sanitize_text_field(wp_unslash((string) ($_GET['requirement_id'] ?? '')));
+        $requirementDetail = $detailId === '' ? null : $this->service->requirementDetailWorkspace($detailId, $org?->id);
+        $evidence = $requirementDetail === null ? null : ['requirement' => $requirementDetail['requirement'], 'source' => $requirementDetail['source'], 'checklist_items' => $requirementDetail['checklist_items']];
         $error = sanitize_text_field(wp_unslash((string) ($_GET['atlas_error'] ?? '')));
         require ATLAS_PLATFORM_DIR . 'templates/resources/sources.php';
     }

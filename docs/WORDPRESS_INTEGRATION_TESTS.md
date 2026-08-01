@@ -8,7 +8,7 @@ Atlas includes a database-backed integration suite for a disposable WordPress in
 - PHP 8.1 or newer.
 - A reachable MySQL 5.7 or MySQL 8.0 database.
 - No production, personal, or patient data.
-- Atlas source available at `plugin/atlas-platform`.
+- Atlas source available at `plugins/atlas-platform`.
 
 Do not store database or administrator credentials in this repository. WordPress may use its normal `wp-config.php`, or secrets may be supplied through environment-specific configuration outside Git.
 

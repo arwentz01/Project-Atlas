@@ -11,6 +11,9 @@ interface SourceWorkspaceRepository
     public function reviewCandidate(string $id, string $status, int $userId): bool;
     public function createRequirement(?string $organizationId, int $userId, array $input): string;
     public function reviewRequirement(string $id, ?string $organizationId, string $status, int $userId): bool;
+    public function appendRequirementRevision(string $requirementId, ?string $organizationId, int $userId, string $revisionType, array $snapshot): string;
+    /** @return list<array<string,mixed>> */
+    public function requirementRevisions(string $requirementId, ?string $organizationId, int $limit = 25): array;
     public function createInsuranceProfile(?string $organizationId, int $userId, array $input): string;
     /** @return list<array<string,mixed>> */
     public function insuranceProfiles(?string $organizationId, int $limit = 25, array $criteria = []): array;

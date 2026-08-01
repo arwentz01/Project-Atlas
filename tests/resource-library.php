@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-define('ATLAS_PLATFORM_DIR', dirname(__DIR__) . '/plugin/atlas-platform/');
+define('ATLAS_PLATFORM_DIR', dirname(__DIR__) . '/plugins/atlas-platform/');
 define('ABSPATH', __DIR__ . '/');
 require ATLAS_PLATFORM_DIR . 'src/Autoloader.php';
 Atlas\Platform\Autoloader::register();

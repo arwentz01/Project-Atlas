@@ -8,7 +8,7 @@ if (! is_string($wordpressPath) || trim($wordpressPath) === '') {
 }
 
 $wordpressPath = rtrim($wordpressPath, '/\\');
-$source = realpath(dirname(__DIR__) . '/plugin/atlas-platform');
+$source = realpath(dirname(__DIR__) . '/plugins/atlas-platform');
 $plugins = $wordpressPath . '/wp-content/plugins';
 $target = $plugins . '/atlas-platform';
 if ($source === false || ! is_dir($plugins)) {

@@ -1,6 +1,6 @@
 <?php
 declare(strict_types=1);
-define('ATLAS_PLATFORM_DIR',dirname(__DIR__).'/plugin/atlas-platform/');require ATLAS_PLATFORM_DIR.'src/Autoloader.php';Atlas\Platform\Autoloader::register();
+define('ATLAS_PLATFORM_DIR',dirname(__DIR__).'/plugins/atlas-platform/');require ATLAS_PLATFORM_DIR.'src/Autoloader.php';Atlas\Platform\Autoloader::register();
 function esc_html(string $value):string{return htmlspecialchars($value,ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8');} function __(string $value,string $domain=''):string{return $value;}
 use Atlas\Platform\Resources\Presentation\StructuredContentRenderer;
 function present_expect(bool $condition,string $message):void{if(!$condition){throw new RuntimeException($message);}echo "PASS: {$message}\n";}

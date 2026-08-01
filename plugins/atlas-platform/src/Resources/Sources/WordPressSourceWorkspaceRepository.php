@@ -177,6 +177,40 @@ final class WordPressSourceWorkspaceRepository implements SourceWorkspaceReposit
         return $this->db->update($this->db->prefix . 'atlas_payer_requirements', ['review_status' => $status, 'reviewed_by' => $user, 'reviewed_at' => gmdate('Y-m-d H:i:s'), 'updated_at' => gmdate('Y-m-d H:i:s')], $where, ['%s','%d','%s','%s'], $formats) !== false;
     }
 
+    public function appendRequirementRevision(string $requirementId, ?string $org, int $user, string $revisionType, array $snapshot): string
+    {
+        $table = $this->db->prefix . 'atlas_payer_requirement_revisions';
+        $next = (int) $this->db->get_var($this->db->prepare("SELECT COALESCE(MAX(revision_number),0)+1 FROM `{$table}` WHERE requirement_id=%s", $requirementId));
+        $json = wp_json_encode($snapshot);
+        if (! is_string($json)) { $json = '{}'; }
+        $id = wp_generate_uuid4();
+        $this->db->insert($table, [
+            'id' => $id,
+            'requirement_id' => $requirementId,
+            'organization_id' => $org,
+            'revision_number' => $next,
+            'revision_type' => sanitize_key($revisionType),
+            'snapshot_json' => $json,
+            'created_by' => $user,
+            'created_at' => gmdate('Y-m-d H:i:s'),
+        ], ['%s','%s','%s','%d','%s','%s','%d','%s']);
+        return $id;
+    }
+
+    public function requirementRevisions(string $requirementId, ?string $org, int $limit = 25): array
+    {
+        $table = $this->db->prefix . 'atlas_payer_requirement_revisions';
+        $limit = max(1, min(100, $limit));
+        $rows = $this->db->get_results($this->db->prepare("SELECT * FROM `{$table}` WHERE requirement_id=%s AND (organization_id IS NULL OR organization_id=%s) ORDER BY revision_number DESC LIMIT %d", $requirementId, (string) $org, $limit), ARRAY_A);
+        $out = [];
+        foreach (is_array($rows) ? $rows : [] as $row) {
+            $snapshot = json_decode((string) ($row['snapshot_json'] ?? '{}'), true);
+            $row['snapshot'] = is_array($snapshot) ? $snapshot : [];
+            $out[] = $row;
+        }
+        return $out;
+    }
+
     public function findRequirement(string $id, ?string $org): ?array
     {
         $t = $this->db->prefix . 'atlas_payer_requirements';

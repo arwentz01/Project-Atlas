@@ -1,6 +1,6 @@
 <?php
 declare(strict_types=1);
-define('ATLAS_PLATFORM_DIR', dirname(__DIR__) . '/plugin/atlas-platform/');
+define('ATLAS_PLATFORM_DIR', dirname(__DIR__) . '/plugins/atlas-platform/');
 require ATLAS_PLATFORM_DIR . 'src/Autoloader.php';
 Atlas\Platform\Autoloader::register();
 if (! function_exists('sanitize_key')) { function sanitize_key(string $key): string { return strtolower(preg_replace('/[^a-z0-9_\-]/', '', $key) ?? ''); } }
@@ -28,7 +28,7 @@ final class MemoryPackets implements PacketRepository {
 }
 
 final class MemorySources implements SourceWorkspaceRepository {
-    public array $docs = [], $sections = [], $candidates = [], $requirements = [], $states = [], $profiles = [], $dme = [];
+    public array $docs = [], $sections = [], $candidates = [], $requirements = [], $states = [], $profiles = [], $dme = [], $revisions = [];
     private string $id = '550e8400-e29b-41d4-a716-446655440000';
     public function createDocument(?string $o, int $u, array $i): string { $this->docs[$this->id] = $i + ['id'=>$this->id,'org'=>$o,'user'=>$u,'extraction_status'=>'queued']; return $this->id; }
     public function updateDocumentStatus(string $id, ?string $o, string $s, string $n = ''): bool { $this->docs[$id]['extraction_status'] = $s; return true; }
@@ -37,6 +37,8 @@ final class MemorySources implements SourceWorkspaceRepository {
     public function reviewCandidate(string $id, string $status, int $user): bool { if (! isset($this->candidates[$id]) || ! in_array($status, ['approved','rejected','needs_changes'], true)) { return false; } $this->candidates[$id]['status'] = $status; return true; }
     public function createRequirement(?string $o, int $u, array $i): string { $this->requirements[$this->id] = $i + ['id'=>$this->id,'org'=>$o,'user'=>$u,'review_status'=>'draft']; return $this->id; }
     public function reviewRequirement(string $id, ?string $o, string $s, int $u): bool { $this->requirements[$id]['review_status'] = $s; return true; }
+    public function appendRequirementRevision(string $id, ?string $o, int $u, string $t, array $s): string { $revision = ['id'=>$this->id,'requirement_id'=>$id,'organization_id'=>$o,'revision_number'=>count($this->revisions[$id] ?? []) + 1,'revision_type'=>$t,'snapshot'=>$s,'created_by'=>$u,'created_at'=>'now']; $this->revisions[$id][] = $revision; return $this->id; }
+    public function requirementRevisions(string $id, ?string $o, int $l = 25): array { return array_reverse(array_slice($this->revisions[$id] ?? [], -$l)); }
     public function createInsuranceProfile(?string $o, int $u, array $i): string { $this->profiles[$this->id] = $i + ['id'=>$this->id,'org'=>$o,'user'=>$u,'status'=>'active']; return $this->id; }
     public function insuranceProfiles(?string $o, int $l = 25, array $c = []): array { return array_values($this->profiles); }
     public function createDmeCategory(array $i): string { $this->dme[$this->id] = $i + ['id'=>$this->id,'status'=>'active']; return $this->id; }
@@ -86,6 +88,9 @@ $checklist = $service->documentationChecklist('org-a', ['status'=>'published']);
 sw_expect(count($checklist[0]['checklist_items'] ?? []) === 2 && ($evidence['source']['document_title'] ?? '') === 'Policy', 'payer requirements produce internal documentation checklists and evidence detail outside patient packets');
 $summary = $service->coverageSummary($requirement, 'org-a');
 sw_expect(($summary['internal_only'] ?? false) === true && ($summary['patient_packet_safe'] ?? true) === false && ($summary['readiness']['ready'] ?? false) === true && ($summary['prior_authorization_workup']['ready_for_submission_prep'] ?? false) === true && ($summary['source']['document_title'] ?? '') === 'Policy', 'payer requirements produce internal DME coverage summaries with readiness, prior authorization workups, evidence, and packet separation guardrails');
+$detail = $service->requirementDetailWorkspace($requirement, 'org-a');
+sw_expect(($detail['internal_only'] ?? false) === true && ($detail['patient_packet_safe'] ?? true) === false && ($detail['readiness_status'] ?? '') === 'ready' && ($detail['prior_authorization']['ready_for_submission_prep'] ?? false) === true && count($detail['checklist_items'] ?? []) === 2 && ($detail['source']['document_title'] ?? '') === 'Policy', 'coverage requirement detail workspace composes readiness, prior auth tasks, checklist state, and source evidence');
+sw_expect(count($detail['revisions'] ?? []) === 2 && ($detail['revisions'][0]['revision_type'] ?? '') === 'status_published' && ($detail['revisions'][1]['revision_type'] ?? '') === 'created', 'payer requirement revisions are appended as immutable detail history');
 $summaryExport = $service->coverageSummaryExport('org-a', ['payer'=>'Payer','dme_category_slug'=>'cpap']);
 sw_expect(($summaryExport['summary']['total_count'] ?? 0) === 1 && ($summaryExport['summary']['ready_count'] ?? 0) === 1 && ($summaryExport['summary']['prior_auth_ready_count'] ?? 0) === 1 && ($summaryExport['items'][0]['patient_packet_safe'] ?? true) === false, 'coverage summary exports provide filtered internal counts without becoming patient packet content');
 $prep = $service->priorAuthorizationPrepWorkspace('org-a', ['payer'=>'Payer','dme_category_slug'=>'cpap']);

@@ -2,7 +2,7 @@
 
 This directory contains the installable WordPress plugin for Project Atlas.
 
-## Current foundation (0.71.0)
+## Current foundation (0.74.0)
 
 - WordPress plugin bootstrap
 - Namespace autoloader
@@ -59,10 +59,12 @@ This directory contains the installable WordPress plugin for Project Atlas.
 - Sources admin exposes the internal coverage-summary export JSON from the insurance and DME matching panel
 - Prior Authorization Prep Workspace summarizes required workups, ready/blocked counts, task previews, and export access in the Sources admin
 - DME Coverage Operations Dashboard summarizes readiness, prior authorization buckets, and action rows for published DME requirements
+- Coverage Requirement Detail Workspace composes requirement text, readiness, prior authorization workup, checklist state, source evidence, and internal-only export access from a single requirement selection
+- Immutable payer requirement revisions preserve append-only snapshots when requirements are created and when review status changes
 
 ## Install manually
 
-1. Copy `plugin/atlas-platform` into `wp-content/plugins/atlas-platform`.
+1. Copy `plugins/atlas-platform` into `wp-content/plugins/atlas-platform`.
 2. Activate **Atlas Platform** in WordPress.
 3. Visit `/wp-json/atlas/v1/health` and confirm that the response reports `status: ok`.
 4. Select **Atlas** in WordPress administration to explore the product preview.

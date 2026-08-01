@@ -7,6 +7,6 @@ function plugin_dir_url(string $file): string { return 'https://example.test/plu
 function register_activation_hook(string $file, callable $callback): void {}
 function register_deactivation_hook(string $file, callable $callback): void {}
 function add_action(string $hook, callable $callback): void {}
-require dirname(__DIR__) . '/plugin/atlas-platform/atlas-platform.php';
+require dirname(__DIR__) . '/plugins/atlas-platform/atlas-platform.php';
 if (! function_exists('atlas')) { throw new RuntimeException('atlas() helper was not loaded.'); }
 echo "Plugin bootstrap loaded without a fatal error.\n";

@@ -19,7 +19,7 @@ A module implements `Core\Modules\Module`: stable `slug()`, `version()`, depende
 
 ## Forward-only migrations
 
-Migration files live in `plugin/atlas-platform/migrations` and use `<numeric-id>_<snake_case_name>.php`, for example `0077_add_index.php` or `1001_future_change.php`. Numeric identifiers have no fixed width or maximum, must match `Migration::id()`, and are naturally ordered. Each file returns one `Migration` object.
+Migration files live in `plugins/atlas-platform/migrations` and use `<numeric-id>_<snake_case_name>.php`, for example `0077_add_index.php` or `1001_future_change.php`. Numeric identifiers have no fixed width or maximum, must match `Migration::id()`, and are naturally ordered. Each file returns one `Migration` object.
 
 Every migration must inspect the existing schema before each mutation, verify that an existing object has the expected definition, use one DDL mutation per statement, be repeatable after interruption, and fail on unknown SQL errors. Never assume transactional DDL or implement automatic rollback. Long data work must use persisted, idempotent, bounded batches. The runner records completion only after `up()` succeeds, processes at most ten migrations per web request, and retains the legacy `atlas_platform_db_version` option as a convenient latest-completed value; the dedicated ledger is authoritative.
 
