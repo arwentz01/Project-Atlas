@@ -31,13 +31,6 @@ final class OrganizationsModule implements Module
         add_action('admin_enqueue_scripts', [$this->page, 'enqueue']);
         add_action('admin_post_atlas_select_organization', [$this->page, 'select']);
         add_action('admin_post_atlas_create_organization', [$this->page, 'create']);
-        add_action('admin_post_atlas_invite_member', [$this->page, 'invite']);
-        add_action('admin_post_atlas_accept_invitation', [$this->page, 'acceptInvitation']);
-        add_action('admin_post_nopriv_atlas_accept_invitation', [$this->page, 'acceptInvitation']);
-        add_action('admin_post_atlas_revoke_invitation', [$this->page, 'revokeInvitation']);
-        add_action('admin_post_atlas_update_member_roles', [$this->page, 'updateMemberRoles']);
-        add_action('admin_post_atlas_remove_member', [$this->page, 'removeMember']);
-        add_action('admin_post_atlas_save_branding', [$this->page, 'saveBranding']);
         add_filter('atlas_admin_navigation', [$this, 'navigation'], 10, 2);
         do_action('atlas_organizations_register', $this);
     }

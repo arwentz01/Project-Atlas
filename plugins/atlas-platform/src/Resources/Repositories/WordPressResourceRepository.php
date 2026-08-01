@@ -25,7 +25,7 @@ final class WordPressResourceRepository implements ResourceRepository
     }
     public function findPublishedForContext(string $resourceId, ?string $organizationId): ?PublishedResource
     {
-        $sql = "SELECT r.id, r.scope, r.organization_id, r.resource_type, r.slug, r.created_at AS resource_created_at, r.updated_at, v.id AS version_id, v.version_number, v.title, v.summary, v.body_json, v.review_status, v.effective_date, v.review_due_date, v.change_summary, v.author_user_id, v.created_at AS version_created_at FROM `{$this->resources}` r INNER JOIN `{$this->versions}` v ON v.id = r.current_version_id WHERE r.id = %s AND r.archived_at IS NULL AND v.review_status = %s AND (r.scope IN ('platform', 'public') OR (r.scope = 'organization' AND r.organization_id = %s)) LIMIT 1";
+        $sql = "SELECT r.id, r.scope, r.organization_id, r.resource_type, r.slug, r.created_at AS resource_created_at, r.updated_at, v.id AS version_id, v.version_number, v.title, v.summary, v.body_json, v.review_status, v.effective_date, v.review_due_date, v.change_summary, v.author_user_id, v.created_at AS version_created_at FROM `{$this->resources}` r INNER JOIN `{$this->versions}` v ON v.id = r.current_version_id WHERE r.id = %s AND v.review_status = %s AND (r.scope IN ('platform', 'public') OR (r.scope = 'organization' AND r.organization_id = %s)) LIMIT 1";
         $row = $this->database->get_row($this->database->prepare($sql, $resourceId, 'published', $organizationId ?? ''), ARRAY_A);
         if (! is_array($row)) { return null; }
         try { $body = json_decode((string) $row['body_json'], true, 32, JSON_THROW_ON_ERROR); }

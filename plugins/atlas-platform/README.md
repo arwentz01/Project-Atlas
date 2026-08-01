@@ -2,7 +2,7 @@
 
 This directory contains the installable WordPress plugin for Project Atlas.
 
-## Current foundation (0.71.0)
+## Current foundation (0.22.0)
 
 - WordPress plugin bootstrap
 - Namespace autoloader
@@ -23,42 +23,6 @@ This directory contains the installable WordPress plugin for Project Atlas.
 - Protected release-readiness gate for manifest, migrations, modules, capabilities, PHP, and WordPress
 - Read-only Atlas product preview with working demonstration search
 - Conservative uninstall behavior that preserves data
-- Deterministic WordPress administration menu registration with Atlas Home as
-  the canonical parent destination
-- Capability-aware application navigation and organization context across all
-  Atlas administration screens
-- Expiring organization invitations with email-bound acceptance and revocation
-- Governed organization member roles and safe member removal
-- Validated organization branding settings with an administration preview
-- Structured resource discovery metadata captured during authoring
-- Immutable resource history, revision creation, and archival controls
-- Reviewer assignments, due dates, and append-only editorial notes
-- Metadata-aware discovery across structured resource classifications
-- Personal saved resources and reusable saved searches
-- Patient packet builder with ordered Resource references
-- Source document registry, anchored excerpts, extraction candidates, and reviewed payer requirement drafts
-- Packet item/status management, source freshness/status tracking, filtered payer requirement discovery, and requirement review transitions
-- REST-backed source workspace service for audited payer requirement creation, discovery, and review
-- REST-backed packet creation, preview, item validation, audit events, and print-safe packet rendering
-- Packet content resolver for printable Resource bodies, structured Requirement text, and visible provenance
-- Source-anchored Requirement provenance for internal evidence review, including source document, page/section, excerpt, extraction statement, and source dates
-- Patient packet guardrails that separate patient-facing materials from internal payer requirements
-- Internal documentation checklists and requirement evidence detail for staff documentation workflows
-- Patient packet resource picker API and catalog-backed patient-facing resource validation
-- Immutable patient packet print snapshots
-- Persistent internal documentation checklist state with audit events
-- Packet readiness gates, snapshot history/detail reprint, and wp-admin patient resource picker
-- Requirement review lanes, freshness alerts, checklist status controls, evidence audit state, and internal checklist export
-- Explicit patient-facing/internal-only metadata normalization during resource authoring
-- Non-PHI insurance profile registry, DME category catalog, and payer/DME requirement matching
-- DME-specific payer requirement details for category slug, prior authorization, frequency limits, replacement intervals, required forms, and coverage criteria
-- DME requirement matching now returns readiness summaries, missing-field lists, and ready-match counts
-- Internal DME coverage summaries combine payer requirement details, readiness, checklist items, and source evidence without becoming patient packet content
-- Internal prior authorization workups summarize next actions, blocking gaps, staff tasks, and required forms without external submission or PHI
-- Filtered internal coverage-summary exports provide operational counts for ready requirements and prior-authorization prep
-- Sources admin exposes the internal coverage-summary export JSON from the insurance and DME matching panel
-- Prior Authorization Prep Workspace summarizes required workups, ready/blocked counts, task previews, and export access in the Sources admin
-- DME Coverage Operations Dashboard summarizes readiness, prior authorization buckets, and action rows for published DME requirements
 
 ## Install manually
 
