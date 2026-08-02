@@ -56,6 +56,12 @@ $inventory = (new MigrationDiscovery($root . '/migrations', $root))->discover();
 expect(count($inventory->malformed) === 1 && $inventory->malformed[0]['path'] === 'migrations/bad.php', 'malformed migrations are reported with relative paths');
 foreach (glob($root . '/migrations/*') ?: [] as $file) { unlink($file); } rmdir($root . '/migrations'); rmdir($root);
 
+$root = sys_get_temp_dir() . '/atlas-migration-test-' . bin2hex(random_bytes(4)); mkdir($root . '/migrations', 0777, true);
+file_put_contents($root . '/migrations/0001_first.php', $template('0001')); file_put_contents($root . '/migrations/0001_duplicate.php', $template('0001')); file_put_contents($root . '/migrations/0003_gap.php', $template('0003'));
+$inventory = (new MigrationDiscovery($root . '/migrations', $root))->discover();
+expect($inventory->duplicates === ['0001'] && $inventory->gaps === ['2'], 'migration discovery reports duplicate identifiers and sequence gaps');
+foreach (glob($root . '/migrations/*') ?: [] as $file) { unlink($file); } rmdir($root . '/migrations'); rmdir($root);
+
 $lock = new MigrationLock(30); $owner = $lock->acquire();
 expect(is_string($owner) && $lock->acquire() === null, 'migration lock prevents concurrent acquisition');
 expect(! $lock->release('another-owner') && $lock->release($owner), 'migration lock can only be released by its owner');

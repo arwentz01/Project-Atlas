@@ -28,6 +28,7 @@ function schema_throws(callable $callback, string $message): void { try { $callb
 $database = new InspectorDatabase(); $schema = new SchemaInspector($database);
 schema_expect($schema->tableExists('wp_atlas_test'), 'schema inspection detects an exact table name');
 $schema->assertTable('wp_atlas_test'); schema_expect(true, 'schema inspection accepts expected engine and collation');
+schema_expect($schema->columnExists('wp_atlas_test', 'user_id'), 'schema inspection detects an existing column');
 $schema->assertColumn('wp_atlas_test', 'user_id', 'bigint unsigned', false); schema_expect(true, 'schema inspection treats MySQL 5.7 integer display width as storage-equivalent');
 $schema->assertIndex('wp_atlas_test', 'membership_unique', ['organization_id', 'user_id'], true); schema_expect(true, 'schema inspection verifies ordered unique index columns');
 $database->column['Type'] = 'int(11) unsigned'; schema_throws(fn() => $schema->assertColumn('wp_atlas_test', 'user_id', 'bigint unsigned', false), 'schema inspection rejects an incompatible integer type');

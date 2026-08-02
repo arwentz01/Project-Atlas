@@ -93,6 +93,14 @@ $assert(isset($routes['/atlas/v1/resources/drafts']), 'the resource draft creati
 $assert(isset($routes['/atlas/v1/resource-versions/(?P<id>[a-fA-F0-9-]{36})/transitions']), 'the editorial transition route is registered');
 $assert(isset($routes['/atlas/v1/sources/dashboard']), 'the source workspace dashboard route is registered');
 $assert(isset($routes['/atlas/v1/sources/documents']), 'the source document creation route is registered');
+$assert(isset($routes['/atlas/v1/sources/documents/(?P<id>[a-fA-F0-9-]{36})/intake']), 'the source intake workspace route is registered');
+$assert(isset($routes['/atlas/v1/sources/documents/(?P<id>[a-fA-F0-9-]{36})/candidates']), 'the source page candidate creation route is registered');
+$assert(isset($routes['/atlas/v1/sources/documents/(?P<id>[a-fA-F0-9-]{36})/comparison']), 'the source version comparison route is registered');
+$assert(isset($routes['/atlas/v1/sources/documents/(?P<id>[a-fA-F0-9-]{36})/impact-review']), 'the source impact review opening route is registered');
+$assert(isset($routes['/atlas/v1/source-impact-reviews']), 'the source impact review queue route is registered');
+$assert(isset($routes['/atlas/v1/extraction-candidates/(?P<id>[a-fA-F0-9-]{36})/workspace']), 'the extraction candidate workspace route is registered');
+$assert(isset($routes['/atlas/v1/extraction-candidates/(?P<id>[a-fA-F0-9-]{36})/requirements']), 'the extraction candidate requirement draft route is registered');
+$assert(isset($routes['/atlas/v1/requirement-change-proposals']), 'the requirement change proposal queue route is registered');
 $assert(isset($routes['/atlas/v1/payer-requirements']), 'the payer requirement collection route is registered');
 $assert(isset($routes['/atlas/v1/insurance-profiles']), 'the insurance profile route is registered');
 $assert(isset($routes['/atlas/v1/dme-categories']), 'the DME category route is registered');
@@ -102,7 +110,13 @@ $assert(isset($routes['/atlas/v1/documentation-checklists/export']), 'the docume
 $assert(isset($routes['/atlas/v1/coverage-summaries/export']), 'the coverage summary export route is registered');
 $assert(isset($routes['/atlas/v1/payer-requirements/(?P<id>[a-fA-F0-9-]{36})/evidence']), 'the payer requirement evidence route is registered');
 $assert(isset($routes['/atlas/v1/payer-requirements/(?P<id>[a-fA-F0-9-]{36})/coverage-summary']), 'the payer requirement coverage summary route is registered');
+$assert(isset($routes['/atlas/v1/payer-requirements/(?P<id>[a-fA-F0-9-]{36})/workspace']), 'the payer requirement workspace route is registered');
 $assert(isset($routes['/atlas/v1/payer-requirements/(?P<id>[a-fA-F0-9-]{36})/checklist']), 'the payer requirement checklist update route is registered');
+$assert(isset($routes['/atlas/v1/payer-requirements/(?P<id>[a-fA-F0-9-]{36})/source-review']), 'the payer requirement source review clear route is registered');
+$assert(isset($routes['/atlas/v1/payer-requirements/(?P<id>[a-fA-F0-9-]{36})/change-proposals']), 'the payer requirement change proposal route is registered');
+$assert(isset($routes['/atlas/v1/payer-requirements/(?P<id>[a-fA-F0-9-]{36})/change-proposals/(?P<proposal_id>[a-fA-F0-9-]{36})/workspace']), 'the payer requirement change proposal workspace route is registered');
+$assert(isset($routes['/atlas/v1/payer-requirements/(?P<id>[a-fA-F0-9-]{36})/change-proposals/(?P<proposal_id>[a-fA-F0-9-]{36})/apply']), 'the payer requirement change proposal apply route is registered');
+$assert(isset($routes['/atlas/v1/payer-requirements/(?P<id>[a-fA-F0-9-]{36})/change-proposals/(?P<proposal_id>[a-fA-F0-9-]{36})/reject']), 'the payer requirement change proposal reject route is registered');
 $assert(isset($routes['/atlas/v1/payer-requirements/(?P<id>[a-fA-F0-9-]{36})/review']), 'the payer requirement review route is registered');
 $assert(isset($routes['/atlas/v1/packets']), 'the packet creation route is registered');
 $assert(isset($routes['/atlas/v1/packets/options']), 'the packet patient resource options route is registered');
@@ -129,7 +143,20 @@ $protectedRequests = [
     new WP_REST_Request('POST', '/atlas/v1/organizations'),
     new WP_REST_Request('POST', '/atlas/v1/resources/drafts'),
     new WP_REST_Request('POST', '/atlas/v1/sources/documents'),
+    new WP_REST_Request('GET', '/atlas/v1/sources/documents/550e8400-e29b-41d4-a716-446655440000/intake'),
+    new WP_REST_Request('POST', '/atlas/v1/sources/documents/550e8400-e29b-41d4-a716-446655440000/candidates'),
+    new WP_REST_Request('GET', '/atlas/v1/source-impact-reviews'),
+    new WP_REST_Request('GET', '/atlas/v1/extraction-candidates/550e8400-e29b-41d4-a716-446655440000/workspace'),
+    new WP_REST_Request('POST', '/atlas/v1/extraction-candidates/550e8400-e29b-41d4-a716-446655440000/requirements'),
+    new WP_REST_Request('GET', '/atlas/v1/requirement-change-proposals'),
+    new WP_REST_Request('POST', '/atlas/v1/sources/documents/550e8400-e29b-41d4-a716-446655440000/impact-review'),
     new WP_REST_Request('POST', '/atlas/v1/payer-requirements'),
+    new WP_REST_Request('GET', '/atlas/v1/payer-requirements/550e8400-e29b-41d4-a716-446655440000/workspace'),
+    new WP_REST_Request('DELETE', '/atlas/v1/payer-requirements/550e8400-e29b-41d4-a716-446655440000/source-review'),
+    new WP_REST_Request('POST', '/atlas/v1/payer-requirements/550e8400-e29b-41d4-a716-446655440000/change-proposals'),
+    new WP_REST_Request('GET', '/atlas/v1/payer-requirements/550e8400-e29b-41d4-a716-446655440000/change-proposals/550e8400-e29b-41d4-a716-446655440000/workspace'),
+    new WP_REST_Request('POST', '/atlas/v1/payer-requirements/550e8400-e29b-41d4-a716-446655440000/change-proposals/550e8400-e29b-41d4-a716-446655440000/apply'),
+    new WP_REST_Request('POST', '/atlas/v1/payer-requirements/550e8400-e29b-41d4-a716-446655440000/change-proposals/550e8400-e29b-41d4-a716-446655440000/reject'),
     new WP_REST_Request('POST', '/atlas/v1/packets'),
     new WP_REST_Request('POST', '/atlas/v1/workflows/drafts'),
     new WP_REST_Request('GET', '/atlas/v1/diagnostics/readiness'),
@@ -168,7 +195,7 @@ foreach (['atlas_invite_member','atlas_accept_invitation','atlas_revoke_invitati
 foreach (['atlas_create_revision','atlas_archive_resource','atlas_assign_reviewer','atlas_add_review_note'] as $action) {
     $assert(has_action('admin_post_' . $action) !== false, sprintf('the %s resource governance action is registered', $action));
 }
-foreach (['atlas_create_packet','atlas_add_packet_item','atlas_remove_packet_item','atlas_update_packet_status','atlas_create_source_document','atlas_update_source_status','atlas_create_source_section','atlas_create_extraction_candidate','atlas_review_extraction_candidate','atlas_create_payer_requirement','atlas_review_payer_requirement'] as $action) {
+foreach (['atlas_create_packet','atlas_add_packet_item','atlas_remove_packet_item','atlas_update_packet_status','atlas_snapshot_packet','atlas_create_source_document','atlas_update_source_status','atlas_create_source_section','atlas_save_source_page','atlas_create_extraction_candidate','atlas_create_candidate_from_page','atlas_review_extraction_candidate','atlas_create_requirement_from_candidate','atlas_create_payer_requirement','atlas_review_payer_requirement','atlas_create_requirement_change_proposal','atlas_apply_requirement_change_proposal','atlas_reject_requirement_change_proposal','atlas_create_insurance_profile','atlas_create_dme_category','atlas_update_checklist_state','atlas_open_source_impact_review','atlas_clear_source_impact_review'] as $action) {
     $assert(has_action('admin_post_' . $action) !== false, sprintf('the %s source-to-requirement action is registered', $action));
 }
 $assert(has_action('admin_post_nopriv_atlas_accept_invitation') !== false, 'logged-out invitation acceptance redirects through the invitation handler');

@@ -1,5 +1,5 @@
 {
-  "version": "0.74.0",
+  "version": "1.23.0",
   "required": [
     "atlas-platform.php",
     "src/Plugin.php",
@@ -167,6 +167,13 @@
     "migrations/0018_insurance_dme_foundation.php",
     "migrations/0019_dme_requirement_details.php",
     "migrations/0020_payer_requirement_revisions.php",
+    "migrations/0021_source_document_preservation.php",
+    "migrations/0022_source_document_pages.php",
+    "migrations/0023_source_document_versioning.php",
+    "migrations/0024_source_impact_review_queue.php",
+    "migrations/0025_requirement_change_proposals.php",
+    "migrations/0026_requirement_change_proposal_apply.php",
+    "migrations/0027_requirement_change_proposal_rejection.php",
     "README.md",
     "release-manifest.json"
   ]

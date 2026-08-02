@@ -1,6 +1,6 @@
 # Atlas release gate
 
-Atlas 0.74.0 formalizes three release gates.
+Atlas 1.23.0 formalizes three release gates.
 
 1. `php tests/run-all.php` runs the standalone Atlas test suite in isolated PHP processes.
 2. `php tests/release-gate.php` verifies version agreement, every required deployable file, and exact migration-manifest parity without requiring WordPress.

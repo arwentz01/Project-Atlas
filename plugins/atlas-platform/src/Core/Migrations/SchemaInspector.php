@@ -30,6 +30,10 @@ final class SchemaInspector
         $actualDefault = $row['Default'] === null ? null : (string) $row['Default'];
         if ($actualDefault !== $default) { throw new RuntimeException("Column {$table}.{$column} has an incompatible default."); }
     }
+    public function columnExists(string $table, string $column): bool
+    {
+        return is_array($this->database->get_row($this->database->prepare("SHOW COLUMNS FROM `{$table}` WHERE Field = %s", $column), ARRAY_A));
+    }
     /** @param list<string> $columns */
     public function indexMatches(string $table, string $name, array $columns, bool $unique): bool
     {

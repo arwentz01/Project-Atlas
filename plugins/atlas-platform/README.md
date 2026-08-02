@@ -2,7 +2,7 @@
 
 This directory contains the installable WordPress plugin for Project Atlas.
 
-## Current foundation (0.74.0)
+## Current foundation (1.23.0)
 
 - WordPress plugin bootstrap
 - Namespace autoloader
@@ -21,6 +21,12 @@ This directory contains the installable WordPress plugin for Project Atlas.
 - Organization branding and controlled, idempotent patient-resource variants
 - Versioned, source-linked, tenant-aware operational workflows
 - Protected release-readiness gate for manifest, migrations, modules, capabilities, PHP, and WordPress
+- Draft payer requirement change proposals for updated source reviews without mutating published requirements
+- Applied requirement change proposals update internal payer guidance with immutable revision history
+- Rejected requirement change proposals retain non-PHI staff decision notes and cannot be applied later
+- Requirement change proposal queue gives staff one internal review list across draft, applied, and rejected buckets
+- Proposal queue admin UI, before/after diffs, admin apply/reject actions, source-review closeout guards, and proposal timelines
+- Visible proposal timeline UI, proposal-aware source review queue warnings, proposal dashboard counts, and full requirement workspace REST payloads
 - Read-only Atlas product preview with working demonstration search
 - Conservative uninstall behavior that preserves data
 - Deterministic WordPress administration menu registration with Atlas Home as
@@ -61,6 +67,16 @@ This directory contains the installable WordPress plugin for Project Atlas.
 - DME Coverage Operations Dashboard summarizes readiness, prior authorization buckets, and action rows for published DME requirements
 - Coverage Requirement Detail Workspace composes requirement text, readiness, prior authorization workup, checklist state, source evidence, and internal-only export access from a single requirement selection
 - Immutable payer requirement revisions preserve append-only snapshots when requirements are created and when review status changes
+- Source document preservation accepts validated internal PDF uploads, stores checksum and file metadata, and keeps private file paths out of patient-facing outputs
+- Page-aware source extraction stores replaceable source-document page text with extraction method, checksum, and page anchors for internal review
+- Source version comparison links newer documents to superseded sources, highlights changed stored pages, and flags impacted payer requirements for review
+- Source impact review queue marks requirements affected by changed superseding sources until staff clear the internal review flag
+- Resources module mounts packet and source workspace admin screens, admin-post actions, and REST routes through active WordPress hooks
+- WordPress integration gate checks source comparison, impact-review routes, and full source/packet admin-post action registration
+- Source comparison and source-impact review actions are available through explicit capability-protected REST endpoints
+- Sources admin can select a specific superseding source document for version comparison
+- Source impact review queue lists requirements that need updated-source review before staff clear them
+- Clearing source impact review requires a non-PHI human review note retained in source-review metadata and revisions
 
 ## Install manually
 

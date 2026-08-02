@@ -20,6 +20,8 @@ final class CapabilityRegistry
         'atlas_manage_workflows' => 'Manage operational workflows',
         'atlas_publish_resources' => 'Publish resources',
         'atlas_review_resources' => 'Review resources',
+        'atlas_upload_sources' => 'Upload source documents',
+        'atlas_review_extractions' => 'Review source extractions',
         'atlas_run_migrations' => 'Run Atlas migrations',
     ];
 
