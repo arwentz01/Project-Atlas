@@ -14,15 +14,29 @@ Atlas is being developed visual-first. Each product area is first represented as
 
 Activation registers Atlas front-end routes and flushes rewrite rules once.
 
-## Demo data
+## Current visual routes
 
-All seeded content is currently code-only fixture data in `src/Support/Fixtures.php`. It does not create posts, users, options, or database rows. Disable it globally with:
+- `/atlas`
+- `/resources`
+- `/resources/home-oxygen-qualification`
+- `/insurance`
+- `/insurance/medicare-dme-oxygen`
+- `/playbooks`
+- `/playbooks/arrange-home-oxygen`
+- `/knowledgebase`
+- `/knowledgebase/discharge-documentation-standard`
+
+## Demo data and cleanup
+
+All seeded content is code-only fixture data in `src/Support/Fixtures.php`. It does **not** create WordPress posts, users, options, custom tables, or other database rows.
+
+Disable demo content globally with:
 
 ```php
 add_filter('atlas_enable_demo_data', '__return_false');
 ```
 
-This makes cleanup deterministic: replace the fixture provider with production repositories or disable the filter without deleting application content from WordPress.
+The production path is intentional: approved visual workflows can later receive repository/service-backed data without deleting fixture records from WordPress because no fixture records were written there in the first place.
 
 ## Hosting constraints
 
@@ -30,4 +44,12 @@ Production code targets shared hosting with PHP 8.1+ and WordPress/MySQL. No Nod
 
 ## Visual build log
 
-- **Build 001 / 0.1.0:** application shell, authentication return flow, responsive navigation, dashboard, accessible base components, fixture boundary.
+- **Build 001 / 0.1.0:** Atlas application shell, authenticated front-end entry, responsive navigation, home dashboard, accessible base components, fixture boundary.
+- **Build 002 / 0.2.0:** Resource Library search/filter experience, trust metadata, resource detail, related guidance, print presentation.
+- **Build 003 / 0.3.0:** Insurance workspace, payer requirement directory, source/effective-date context, practical requirement detail and documentation checklist.
+- **Build 004 / 0.4.0:** Playbooks library and guided-use detail, ordered steps, warnings, required documentation, cross-links to payer and resource guidance.
+- **Build 005 / 0.5.0:** Knowledge Base library/detail, ownership and review context, local-policy distinction, cross-module navigation polish.
+
+## Important boundary
+
+These five builds are a **visual product foundation**, not the final persistence architecture. Business services, repositories, schema, tenant enforcement, audit records, and production authoring workflows should be added only after the front-end experience is reviewed and accepted.
