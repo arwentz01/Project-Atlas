@@ -40,6 +40,16 @@ final class Plugin
 
     public static function recognizeRequest(\WP $wp): void
     {
+        // Honor an explicit route first. This gives diagnostics and hosting
+        // fallbacks a route path that does not depend on pretty permalinks.
+        $explicit = isset($wp->query_vars['atlas_route'])
+            ? sanitize_key((string) $wp->query_vars['atlas_route'])
+            : '';
+
+        if ($explicit !== '' && self::routeExists($explicit)) {
+            return;
+        }
+
         $requestPath = trim((string) $wp->request, '/');
 
         foreach (App::routes() as $route) {
@@ -52,13 +62,23 @@ final class Plugin
 
     public static function dispatch(): void
     {
-        $route = (string) get_query_var('atlas_route');
+        $route = sanitize_key((string) get_query_var('atlas_route'));
+
+        // Some server stacks leave a public query var out of the main query on
+        // the front page. Keep an explicit, validated GET fallback for the
+        // diagnostics route test.
+        if ($route === '' && isset($_GET['atlas_route'])) {
+            $candidate = sanitize_key((string) wp_unslash($_GET['atlas_route']));
+            if (self::routeExists($candidate)) {
+                $route = $candidate;
+            }
+        }
 
         if ($route === '') {
             $route = self::routeFromRequestPath();
         }
 
-        if ($route === '') {
+        if ($route === '' || ! self::routeExists($route)) {
             return;
         }
 
@@ -75,6 +95,16 @@ final class Plugin
         nocache_headers();
         (new App())->render($route);
         exit;
+    }
+
+    private static function routeExists(string $name): bool
+    {
+        foreach (App::routes() as $route) {
+            if ((string) $route['name'] === $name) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static function routeFromRequestPath(): string
@@ -142,15 +172,25 @@ final class Plugin
                 <tr><th>WordPress URL</th><td><code><?php echo esc_html(site_url('/')); ?></code></td></tr>
                 <tr><th>Permalink structure</th><td><code><?php echo esc_html($permalinkStructure ?: '(Plain)'); ?></code></td></tr>
                 <tr><th>Application root</th><td><strong><?php echo esc_html(home_url('/')); ?></strong></td></tr>
-                <tr><th>Route recognition</th><td><strong>site-relative parse_request + rewrite + direct-path fallback</strong></td></tr>
+                <tr><th>Route recognition</th><td><strong>explicit route + site-relative parse_request + rewrite + direct-path fallback</strong></td></tr>
             </tbody></table>
             <h2>Registered front-end routes</h2>
-            <table class="widefat striped" style="max-width:1000px"><thead><tr><th>Route</th><th>Name</th><th>Open</th></tr></thead><tbody>
-            <?php foreach ($routes as $route) : $pattern=trim((string)$route['pattern'],'/'); $url=$pattern===''?home_url('/'):home_url('/'.$pattern); ?>
-                <tr><td><code><?php echo esc_html($pattern===''?'/':'/'.$pattern); ?></code></td><td><?php echo esc_html((string)$route['label']); ?></td><td><a href="<?php echo esc_url($url); ?>">Open in Atlas</a></td></tr>
+            <p><strong>Pretty URL</strong> tests normal WordPress routing. <strong>Direct test</strong> enters through the WordPress front controller and does not depend on the pretty-path rewrite matching the route.</p>
+            <table class="widefat striped" style="max-width:1100px"><thead><tr><th>Route</th><th>Name</th><th>Pretty URL</th><th>Direct test</th></tr></thead><tbody>
+            <?php foreach ($routes as $route) :
+                $pattern=trim((string)$route['pattern'],'/');
+                $pretty=$pattern===''?home_url('/'):home_url('/'.$pattern.'/');
+                $direct=add_query_arg('atlas_route',(string)$route['name'],home_url('/'));
+            ?>
+                <tr>
+                    <td><code><?php echo esc_html($pattern===''?'/':'/'.$pattern); ?></code></td>
+                    <td><?php echo esc_html((string)$route['label']); ?></td>
+                    <td><a href="<?php echo esc_url($pretty); ?>">Open pretty URL</a></td>
+                    <td><a href="<?php echo esc_url($direct); ?>">Run direct test</a></td>
+                </tr>
             <?php endforeach; ?>
             </tbody></table>
-            <p style="margin-top:18px">Atlas 1.0.3 treats the WordPress Home URL as the Atlas application root. On this local install, <code>http://localhost/atlas/</code> is Atlas Home and <code>http://localhost/atlas/resources/</code> is Resources.</p>
+            <p style="margin-top:18px">Atlas 1.0.4 adds rewrite-independent route diagnostics. If a direct test works while its pretty URL returns 404, Atlas rendering is healthy and the remaining issue is the local web-server/WordPress pretty-URL handoff.</p>
         </div>
         <?php
     }
