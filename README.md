@@ -4,15 +4,16 @@ Project Atlas is a front-end healthcare operations workspace delivered as a Word
 
 ## Development direction
 
-Atlas is being developed visual-first. Each product area is first represented as a complete front-end workflow backed by isolated fixture data. Production persistence and services are added only after the experience is approved.
+Atlas is being developed visual-first. Each product area is first represented as a complete front-end workflow backed by isolated fixture/demo data. Production persistence and services are added only after the experience is approved.
+
+The current 1.0.0 visual milestone includes the first ten cumulative product builds. It is intentionally not the final persistence, authorization, tenant, or authoring architecture.
 
 ## Local install
 
-1. Copy this repository into `wp-content/plugins/project-atlas`.
+1. Place this repository in `wp-content/plugins/project-atlas`.
 2. Activate **Project Atlas** in WordPress.
 3. Sign in and visit `/atlas`.
-
-Activation registers Atlas front-end routes and flushes rewrite rules once.
+4. If the plugin was already active before pulling a build that adds routes, deactivate and reactivate it once so WordPress refreshes rewrite rules.
 
 ## Current visual routes
 
@@ -25,10 +26,16 @@ Activation registers Atlas front-end routes and flushes rewrite rules once.
 - `/playbooks/arrange-home-oxygen`
 - `/knowledgebase`
 - `/knowledgebase/discharge-documentation-standard`
+- `/patient-resources`
+- `/patient-resources/home-oxygen-what-to-expect`
+- `/patient-resources/packet-builder`
+- `/profile`
+- `/search`
+- `/workspace`
 
 ## Demo data and cleanup
 
-All seeded content is code-only fixture data in `src/Support/Fixtures.php`. It does **not** create WordPress posts, users, options, custom tables, or other database rows.
+The visual builds do not create demo posts, custom tables, users, patient records, or clinical records. Core fixture content lives in `src/Support/Fixtures.php`; later visual modules contain only code-defined demo display content and are all gated by the same fixture switch.
 
 Disable demo content globally with:
 
@@ -36,11 +43,15 @@ Disable demo content globally with:
 add_filter('atlas_enable_demo_data', '__return_false');
 ```
 
-The production path is intentional: approved visual workflows can later receive repository/service-backed data without deleting fixture records from WordPress because no fixture records were written there in the first place.
+No database cleanup is required to remove the current demo content because it is not persisted.
+
+## PHI boundary
+
+Atlas remains PHI-free by default. The Patient Resources and Packet Builder visual workflows explicitly avoid patient names, dates of birth, MRNs, account numbers, patient-specific diagnoses, notes, orders, or results.
 
 ## Hosting constraints
 
-Production code targets shared hosting with PHP 8.1+ and WordPress/MySQL. No Node, npm, background worker, Redis, Docker, or server build step is required.
+Production is intended for Bluehost-compatible shared hosting using PHP, WordPress APIs, MySQL-compatible SQL, HTML, CSS, and browser JavaScript. No Node, npm, Python, Redis, Docker, background worker, persistent process, or server build step is required.
 
 ## Visual build log
 
@@ -49,7 +60,16 @@ Production code targets shared hosting with PHP 8.1+ and WordPress/MySQL. No Nod
 - **Build 003 / 0.3.0:** Insurance workspace, payer requirement directory, source/effective-date context, practical requirement detail and documentation checklist.
 - **Build 004 / 0.4.0:** Playbooks library and guided-use detail, ordered steps, warnings, required documentation, cross-links to payer and resource guidance.
 - **Build 005 / 0.5.0:** Knowledge Base library/detail, ownership and review context, local-policy distinction, cross-module navigation polish.
+- **Build 006 / 0.6.0:** Patient Resources library and printable patient handout preview with explicit no-PHI boundary and staff-facing cross-links.
+- **Build 007 / 0.7.0:** Patient education Packet Builder with selectable materials, page-count preview, print flow, empty state, and no-PHI guardrails.
+- **Build 008 / 0.8.0:** Profile and organization-context experience, workspace switch concept, role/context hierarchy, and documented future server-side authorization boundary.
+- **Build 009 / 0.9.0:** Unified Atlas search across Resources, Insurance, Playbooks, Knowledge Base, and Patient Resources.
+- **Build 010 / 1.0.0:** Personal Workspace for saved guidance, recent work concepts, packet continuation, and cross-module shortcuts.
+
+## Modular visual extensions
+
+Beginning with Build 006, visual modules register routes and renderers through `src/FrontEnd/ModuleRegistry.php`. This keeps broad product experimentation from continuously expanding the core application controller. The module system is still a visual-development mechanism, not a substitute for the eventual service/repository architecture.
 
 ## Important boundary
 
-These five builds are a **visual product foundation**, not the final persistence architecture. Business services, repositories, schema, tenant enforcement, audit records, and production authoring workflows should be added only after the front-end experience is reviewed and accepted.
+These ten builds are a visual product foundation. Business services, repositories, production schema, tenant enforcement, audit records, saved-item persistence, packet persistence, organization membership, invitations, authoring, and production search should be implemented only after the front-end information architecture and workflow direction are reviewed and accepted.
