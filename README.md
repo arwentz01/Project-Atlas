@@ -6,14 +6,17 @@ Project Atlas is a front-end healthcare operations workspace delivered as a Word
 
 Atlas is being developed visual-first. Each product area is first represented as a complete front-end workflow backed by isolated fixture/demo data. Production persistence and services are added only after the experience is approved.
 
-The current 1.0.0 visual milestone includes the first ten cumulative product builds. It is intentionally not the final persistence, authorization, tenant, or authoring architecture.
+The current 1.0.1 visual milestone includes the first ten cumulative product builds plus a routing/diagnostics fix. It is intentionally not the final persistence, authorization, tenant, or authoring architecture.
 
 ## Local install
 
 1. Place this repository in `wp-content/plugins/project-atlas`.
 2. Activate **Project Atlas** in WordPress.
-3. Sign in and visit `/atlas`.
-4. If the plugin was already active before pulling a build that adds routes, deactivate and reactivate it once so WordPress refreshes rewrite rules.
+3. In WordPress admin, open **Atlas** to confirm route diagnostics.
+4. Sign in and visit `/atlas`.
+5. If **Settings → Permalinks** is set to **Plain**, choose a non-Plain structure and save once.
+
+Atlas 1.0.1 includes a direct request-path fallback in addition to normal WordPress rewrite rules, and a wp-admin diagnostics screen showing the registered routes and permalink status.
 
 ## Current visual routes
 
@@ -65,6 +68,7 @@ Production is intended for Bluehost-compatible shared hosting using PHP, WordPre
 - **Build 008 / 0.8.0:** Profile and organization-context experience, workspace switch concept, role/context hierarchy, and documented future server-side authorization boundary.
 - **Build 009 / 0.9.0:** Unified Atlas search across Resources, Insurance, Playbooks, Knowledge Base, and Patient Resources.
 - **Build 010 / 1.0.0:** Personal Workspace for saved guidance, recent work concepts, packet continuation, and cross-module shortcuts.
+- **1.0.1:** Direct-path route fallback plus wp-admin route/permalink diagnostics.
 
 ## Modular visual extensions
 
