@@ -12,23 +12,20 @@ final class Plugin
     {
         add_action('init', [self::class, 'registerRoutes']);
         add_filter('query_vars', [self::class, 'queryVars']);
-
-        // Recognize Atlas routes from WordPress's normalized request path before
-        // the main query is built. This makes Atlas independent of whether the
-        // web server successfully matched our rewrite rules.
         add_action('parse_request', [self::class, 'recognizeRequest'], 1);
-
-        // Render before WordPress canonical redirects and final 404 handling.
         add_action('template_redirect', [self::class, 'dispatch'], 1);
-
         add_action('admin_menu', [self::class, 'registerAdminPage']);
     }
 
     public static function registerRoutes(): void
     {
         foreach (App::routes() as $route) {
+            $pattern = trim((string) $route['pattern'], '/');
+            if ($pattern === '') {
+                continue;
+            }
             add_rewrite_rule(
-                '^' . trim((string) $route['pattern'], '/') . '/?$',
+                '^' . $pattern . '/?$',
                 'index.php?atlas_route=' . rawurlencode((string) $route['name']),
                 'top'
             );
@@ -43,13 +40,7 @@ final class Plugin
 
     public static function recognizeRequest(\WP $wp): void
     {
-        // $wp->request is already normalized relative to the WordPress home
-        // path, which is more reliable than reparsing REQUEST_URI ourselves.
         $requestPath = trim((string) $wp->request, '/');
-
-        if ($requestPath === '') {
-            return;
-        }
 
         foreach (App::routes() as $route) {
             if ($requestPath === trim((string) $route['pattern'], '/')) {
@@ -82,7 +73,6 @@ final class Plugin
 
         status_header(200);
         nocache_headers();
-
         (new App())->render($route);
         exit;
     }
@@ -100,25 +90,18 @@ final class Plugin
         $requestPath = (string) wp_parse_url($requestUri, PHP_URL_PATH);
         $homePath = (string) wp_parse_url(home_url('/'), PHP_URL_PATH);
         $sitePath = (string) wp_parse_url(site_url('/'), PHP_URL_PATH);
-
         $requestPath = '/' . ltrim($requestPath, '/');
 
-        // Try both the public home path and the WordPress installation path.
-        // Local installs commonly differ here (for example /atlas-site vs
-        // /atlas-site/wordpress).
         foreach (array_unique([$homePath, $sitePath]) as $basePath) {
             $basePath = '/' . trim((string) $basePath, '/');
-
             if ($basePath === '/') {
                 continue;
             }
-
             if (str_starts_with($requestPath, $basePath . '/')) {
                 $requestPath = substr($requestPath, strlen($basePath));
                 break;
             }
-
-            if ($requestPath === $basePath) {
+            if ($requestPath === $basePath || $requestPath === $basePath . '/') {
                 $requestPath = '/';
                 break;
             }
@@ -137,15 +120,7 @@ final class Plugin
 
     public static function registerAdminPage(): void
     {
-        add_menu_page(
-            'Project Atlas',
-            'Atlas',
-            'read',
-            'project-atlas',
-            [self::class, 'renderAdminPage'],
-            'dashicons-location-alt',
-            3
-        );
+        add_menu_page('Project Atlas','Atlas','read','project-atlas',[self::class,'renderAdminPage'],'dashicons-location-alt',3);
     }
 
     public static function renderAdminPage(): void
@@ -153,48 +128,29 @@ final class Plugin
         if (! current_user_can('read')) {
             wp_die(esc_html__('You do not have permission to view Atlas diagnostics.', 'project-atlas'));
         }
-
         $routes = App::routes();
         $permalinkStructure = (string) get_option('permalink_structure');
         ?>
         <div class="wrap">
             <h1>Project Atlas</h1>
             <p><strong>Visual foundation <?php echo esc_html(ATLAS_VERSION); ?></strong></p>
-            <p>Atlas is active. Routine product screens live on the front end; this admin page is intentionally limited to setup and diagnostics.</p>
-
-            <?php if ($permalinkStructure === '') : ?>
-                <div class="notice notice-warning inline">
-                    <p><strong>Pretty permalinks are disabled.</strong> Go to <a href="<?php echo esc_url(admin_url('options-permalink.php')); ?>">Settings → Permalinks</a>, choose a non-Plain structure, and save once.</p>
-                </div>
-            <?php else : ?>
-                <div class="notice notice-success inline"><p>WordPress permalink routing is enabled.</p></div>
-            <?php endif; ?>
-
+            <p>Atlas is active. This WordPress installation is treated as the Atlas application root.</p>
+            <?php if ($permalinkStructure === '') : ?><div class="notice notice-warning inline"><p><strong>Pretty permalinks are disabled.</strong> Go to <a href="<?php echo esc_url(admin_url('options-permalink.php')); ?>">Settings → Permalinks</a>, choose a non-Plain structure, and save once.</p></div><?php else : ?><div class="notice notice-success inline"><p>WordPress permalink routing is enabled.</p></div><?php endif; ?>
             <h2>Environment</h2>
-            <table class="widefat striped" style="max-width:1000px">
-                <tbody>
-                    <tr><th style="width:220px">Home URL</th><td><code><?php echo esc_html(home_url('/')); ?></code></td></tr>
-                    <tr><th>WordPress URL</th><td><code><?php echo esc_html(site_url('/')); ?></code></td></tr>
-                    <tr><th>Permalink structure</th><td><code><?php echo esc_html($permalinkStructure ?: '(Plain)'); ?></code></td></tr>
-                    <tr><th>Route recognition</th><td><strong>parse_request + rewrite + direct-path fallback</strong></td></tr>
-                </tbody>
-            </table>
-
+            <table class="widefat striped" style="max-width:1000px"><tbody>
+                <tr><th style="width:220px">Home URL</th><td><code><?php echo esc_html(home_url('/')); ?></code></td></tr>
+                <tr><th>WordPress URL</th><td><code><?php echo esc_html(site_url('/')); ?></code></td></tr>
+                <tr><th>Permalink structure</th><td><code><?php echo esc_html($permalinkStructure ?: '(Plain)'); ?></code></td></tr>
+                <tr><th>Application root</th><td><strong><?php echo esc_html(home_url('/')); ?></strong></td></tr>
+                <tr><th>Route recognition</th><td><strong>site-relative parse_request + rewrite + direct-path fallback</strong></td></tr>
+            </tbody></table>
             <h2>Registered front-end routes</h2>
-            <table class="widefat striped" style="max-width:1000px">
-                <thead><tr><th>Route</th><th>Name</th><th>Open</th></tr></thead>
-                <tbody>
-                <?php foreach ($routes as $route) : ?>
-                    <tr>
-                        <td><code>/<?php echo esc_html(trim((string) $route['pattern'], '/')); ?></code></td>
-                        <td><?php echo esc_html((string) $route['label']); ?></td>
-                        <td><a href="<?php echo esc_url(home_url('/' . trim((string) $route['pattern'], '/'))); ?>">Open in Atlas</a></td>
-                    </tr>
-                <?php endforeach; ?>
-                </tbody>
-            </table>
-
-            <p style="margin-top:18px">Atlas 1.0.2 recognizes registered application paths during WordPress request parsing and retains rewrite/direct-path fallbacks for hosting compatibility.</p>
+            <table class="widefat striped" style="max-width:1000px"><thead><tr><th>Route</th><th>Name</th><th>Open</th></tr></thead><tbody>
+            <?php foreach ($routes as $route) : $pattern=trim((string)$route['pattern'],'/'); $url=$pattern===''?home_url('/'):home_url('/'.$pattern); ?>
+                <tr><td><code><?php echo esc_html($pattern===''?'/':'/'.$pattern); ?></code></td><td><?php echo esc_html((string)$route['label']); ?></td><td><a href="<?php echo esc_url($url); ?>">Open in Atlas</a></td></tr>
+            <?php endforeach; ?>
+            </tbody></table>
+            <p style="margin-top:18px">Atlas 1.0.3 treats the WordPress Home URL as the Atlas application root. On this local install, <code>http://localhost/atlas/</code> is Atlas Home and <code>http://localhost/atlas/resources/</code> is Resources.</p>
         </div>
         <?php
     }
