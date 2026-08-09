@@ -13,9 +13,12 @@ final class Plugin
         add_action('init', [self::class, 'registerRoutes']);
         add_filter('query_vars', [self::class, 'queryVars']);
 
-        // Run before WordPress canonical/404 handling. Atlas first honors the
-        // rewrite query var, then falls back to matching the request path
-        // directly against the central route registry.
+        // Recognize Atlas routes from WordPress's normalized request path before
+        // the main query is built. This makes Atlas independent of whether the
+        // web server successfully matched our rewrite rules.
+        add_action('parse_request', [self::class, 'recognizeRequest'], 1);
+
+        // Render before WordPress canonical redirects and final 404 handling.
         add_action('template_redirect', [self::class, 'dispatch'], 1);
 
         add_action('admin_menu', [self::class, 'registerAdminPage']);
@@ -38,6 +41,24 @@ final class Plugin
         return $vars;
     }
 
+    public static function recognizeRequest(\WP $wp): void
+    {
+        // $wp->request is already normalized relative to the WordPress home
+        // path, which is more reliable than reparsing REQUEST_URI ourselves.
+        $requestPath = trim((string) $wp->request, '/');
+
+        if ($requestPath === '') {
+            return;
+        }
+
+        foreach (App::routes() as $route) {
+            if ($requestPath === trim((string) $route['pattern'], '/')) {
+                $wp->query_vars['atlas_route'] = (string) $route['name'];
+                return;
+            }
+        }
+    }
+
     public static function dispatch(): void
     {
         $route = (string) get_query_var('atlas_route');
@@ -54,12 +75,11 @@ final class Plugin
             auth_redirect();
         }
 
-        // WordPress may already consider a direct Atlas path a 404. Atlas owns
-        // registered application paths, so clear that state before rendering.
         global $wp_query;
         if ($wp_query instanceof \WP_Query) {
             $wp_query->is_404 = false;
         }
+
         status_header(200);
         nocache_headers();
 
@@ -79,15 +99,29 @@ final class Plugin
 
         $requestPath = (string) wp_parse_url($requestUri, PHP_URL_PATH);
         $homePath = (string) wp_parse_url(home_url('/'), PHP_URL_PATH);
+        $sitePath = (string) wp_parse_url(site_url('/'), PHP_URL_PATH);
 
         $requestPath = '/' . ltrim($requestPath, '/');
-        $homePath = '/' . trim($homePath, '/');
 
-        // Support WordPress installed in a subdirectory as well as web root.
-        if ($homePath !== '/' && str_starts_with($requestPath, $homePath . '/')) {
-            $requestPath = substr($requestPath, strlen($homePath));
-        } elseif ($homePath !== '/' && $requestPath === $homePath) {
-            $requestPath = '/';
+        // Try both the public home path and the WordPress installation path.
+        // Local installs commonly differ here (for example /atlas-site vs
+        // /atlas-site/wordpress).
+        foreach (array_unique([$homePath, $sitePath]) as $basePath) {
+            $basePath = '/' . trim((string) $basePath, '/');
+
+            if ($basePath === '/') {
+                continue;
+            }
+
+            if (str_starts_with($requestPath, $basePath . '/')) {
+                $requestPath = substr($requestPath, strlen($basePath));
+                break;
+            }
+
+            if ($requestPath === $basePath) {
+                $requestPath = '/';
+                break;
+            }
         }
 
         $requestPath = trim($requestPath, '/');
@@ -130,11 +164,21 @@ final class Plugin
 
             <?php if ($permalinkStructure === '') : ?>
                 <div class="notice notice-warning inline">
-                    <p><strong>Pretty permalinks are disabled.</strong> Root-level Atlas URLs such as <code>/atlas</code> depend on WordPress receiving clean application paths. Go to <a href="<?php echo esc_url(admin_url('options-permalink.php')); ?>">Settings → Permalinks</a>, choose a non-Plain structure, and save once.</p>
+                    <p><strong>Pretty permalinks are disabled.</strong> Go to <a href="<?php echo esc_url(admin_url('options-permalink.php')); ?>">Settings → Permalinks</a>, choose a non-Plain structure, and save once.</p>
                 </div>
             <?php else : ?>
                 <div class="notice notice-success inline"><p>WordPress permalink routing is enabled.</p></div>
             <?php endif; ?>
+
+            <h2>Environment</h2>
+            <table class="widefat striped" style="max-width:1000px">
+                <tbody>
+                    <tr><th style="width:220px">Home URL</th><td><code><?php echo esc_html(home_url('/')); ?></code></td></tr>
+                    <tr><th>WordPress URL</th><td><code><?php echo esc_html(site_url('/')); ?></code></td></tr>
+                    <tr><th>Permalink structure</th><td><code><?php echo esc_html($permalinkStructure ?: '(Plain)'); ?></code></td></tr>
+                    <tr><th>Route recognition</th><td><strong>parse_request + rewrite + direct-path fallback</strong></td></tr>
+                </tbody>
+            </table>
 
             <h2>Registered front-end routes</h2>
             <table class="widefat striped" style="max-width:1000px">
@@ -150,7 +194,7 @@ final class Plugin
                 </tbody>
             </table>
 
-            <p style="margin-top:18px">If routes were added while the plugin was already active, saving <a href="<?php echo esc_url(admin_url('options-permalink.php')); ?>">Settings → Permalinks</a> once refreshes WordPress rewrite rules. Atlas also includes a direct-path fallback beginning in version 1.0.1.</p>
+            <p style="margin-top:18px">Atlas 1.0.2 recognizes registered application paths during WordPress request parsing and retains rewrite/direct-path fallbacks for hosting compatibility.</p>
         </div>
         <?php
     }
