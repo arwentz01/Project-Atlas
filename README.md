@@ -4,7 +4,7 @@ Project Atlas is a standalone PHP 8 + MySQL healthcare operations application. W
 
 ## Why this reset happened
 
-The initial visual prototype was built as a WordPress plugin, but Atlas did not use WordPress CMS features. Repeated routing friction showed that the CMS runtime was adding complexity without delivering enough value. The repository history preserves the prototype, but `main` now contains the standalone application foundation.
+The initial visual prototype was built as a WordPress plugin, but Atlas did not use WordPress CMS features. Repeated routing friction showed that the CMS runtime was adding complexity without delivering enough value. The repository history preserves the prototype, but `main` now contains the standalone application.
 
 ## Reused proven patterns
 
@@ -30,20 +30,42 @@ cd /Applications/MAMP/htdocs/Atlas
 
 6. Open `http://localhost/Atlas/` and sign in.
 
-## Current standalone routes
+## Current standalone experience
 
-- `/` — Atlas Home
-- `/login`
-- `/resources`
-- `/resources/home-oxygen`
-- `/insurance`
-- `/playbooks`
-- `/knowledge-base`
-- `/patient-resources`
-- `/search`
+- `/` — Home 2.0 with continue-work, guidance review, recent work, and high-value actions
+- `/resources` and `/resources/home-oxygen`
+- `/insurance` plus payer-rule detail routes
+- `/playbooks` plus guided Playbook detail routes
+- `/knowledge-base` plus local-standard detail routes
+- `/patient-resources` plus printable patient handout previews
+- `/patient-resources/packet-builder`
+- `/search` — unified search across the Atlas fixture catalog
 - `/workspace`
+- `/profile`
+- `/login`
 
 The router automatically strips the installation folder from the request path, so the same code works when Atlas is installed under `/Atlas` locally or at a domain root in production.
+
+## Visual builds 011–015
+
+### Build 011 — Insurance Workspace
+Payer-rule library and detail experience with current-source context, effective/review dates, documentation requirements, common misses, and connected Atlas guidance.
+
+### Build 012 — Playbooks + Connected Workflow
+Guided Playbook library/detail experience. `Arrange Home Oxygen` demonstrates the core Atlas chain from need → payer requirement → documentation → supplier handoff → patient education.
+
+### Build 013 — Knowledge Base + Unified Search
+Local policy/SOP/standard library with visible ownership and review status, plus one search surface spanning Insurance, Playbooks, Knowledge Base, Patient Resources, and core Resources.
+
+### Build 014 — Patient Resources + Packet Builder
+Plain-language handout previews, staff tools, print presentation, Packet Builder, and an explicit PHI-free boundary.
+
+### Build 015 — My Workspace + Profile + Home 2.0
+Personal working-set concept, recent/saved guidance, Playbook continuation, organization-context concept, profile surface, and a home dashboard centered on operational work rather than generic module counts.
+
+## Fixture boundary
+
+Current product content is intentionally defined in `src/Fixtures.php`. It is visual/demo content and does not create clinical records or fake persistence. `src/AtlasViews.php` owns the visual module renderers. This keeps the product pass easy to remove or replace when production repositories/services are introduced.
 
 ## Security foundation
 
@@ -55,6 +77,6 @@ The router automatically strips the installation folder from the request path, s
 - authenticated-by-default routes
 - no PHI fields in the current visual/product foundation
 
-## Development direction
+## Next development phase
 
-Atlas remains visual-first. The next step is to restore the approved Insurance, Playbooks, Knowledge Base, Patient Resources, Search, and Workspace experiences on top of this standalone foundation, then add production repositories/services only where the approved experience requires them.
+The visual product surface is broad enough to begin the functional pass selectively. Production persistence, organization authorization, audit, content governance, saved-item state, Playbook progress, and authoring should be implemented only where the approved experience requires them.
