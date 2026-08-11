@@ -9,6 +9,7 @@ require_once ATLAS_ROOT . '/src/Auth.php';
 require_once ATLAS_ROOT . '/src/Csrf.php';
 require_once ATLAS_ROOT . '/src/Router.php';
 require_once ATLAS_ROOT . '/src/App.php';
+require_once ATLAS_ROOT . '/src/Fixtures.php';
 
 Database::loadEnv(ATLAS_ROOT . '/.env');
 Auth::startSession();
