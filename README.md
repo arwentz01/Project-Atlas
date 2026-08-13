@@ -25,10 +25,12 @@ No CTSMD theatre-specific or Koravik event/health product code is copied into At
 
 ```bash
 cd /Applications/MAMP/htdocs/Atlas
-/Applications/MAMP/bin/php/php8.3.30/bin/php bin/create-user.php andrew@example.test 'Choose-a-12+-character-password' 'Andrew'
+/Applications/MAMP/bin/php/php8.3.30/bin/php bin/create-user.php andrew@example.test 'Choose-an-8+-character-password' 'Andrew'
 ```
 
 6. Open `http://localhost/Atlas/` and sign in.
+
+Atlas uses an 8-character minimum password length.
 
 ## Current standalone experience
 
@@ -75,6 +77,7 @@ Current product content is intentionally defined in `src/Fixtures.php`. It is vi
 - prepared PDO statements with emulated prepares disabled
 - CSRF token verification for state-changing POST requests
 - authenticated-by-default routes
+- 8-character minimum password length
 - no PHI fields in the current visual/product foundation
 
 ## Next development phase
