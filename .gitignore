@@ -1,9 +1,4 @@
-# Local configuration
-.env
-
-# OS/editor noise
 .DS_Store
-Thumbs.db
-*.log
-.idea/
-.vscode/
+.env
+/vendor/
+
