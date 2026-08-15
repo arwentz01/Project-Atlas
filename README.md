@@ -14,13 +14,21 @@ This checkpoint connects Atlas's multi-tenant organization foundation while pres
 - Database-backed people directory and secure invitations
 - Custom locations, departments, and positions
 - Supervisor groups with automatic department routing
+- Workforce profiles with employment type, expected hours, flex status, and qualifications
+- Providers, teams, stations, work functions, and organization-defined qualifications
+- Reusable position eligibility groups
+- Open shifts with exact-position, selected-position, or eligibility-group rules
+- Location, department, qualification, overlap, and cross-department eligibility checks
+- Staff shift requests with plain-language eligibility results
+- Provider, station, and work-function coverage assignments
+- Date-specific ambulatory coverage board
 - Responsive staff and manager navigation
 - PHI-free demo fixtures
 
 ## Intentionally deferred
 
 - Self-scheduling rules and approvals
-- Rotations
+- Rotations and reusable schedule templates
 - Messaging
 - Time clock and attendance
 - Payroll and labor-cost modules
@@ -50,3 +58,5 @@ Then visit `http://localhost:8080`.
 - `/organization`
 
 Organization membership is checked server-side for every tenant-scoped action. Organization owners and administrators can change structure and issue invitations.
+
+After pulling this checkpoint into an existing Atlas installation, run `php bin/migrate.php` again so the scheduling and eligibility tables are created.

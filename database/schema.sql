@@ -150,3 +150,211 @@ CREATE TABLE IF NOT EXISTS audit_logs (
     CONSTRAINT fk_audit_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS workforce_profiles (
+    membership_id BIGINT UNSIGNED PRIMARY KEY,
+    organization_id BIGINT UNSIGNED NOT NULL,
+    employment_type ENUM('full_time','part_time','prn','contract') NOT NULL DEFAULT 'full_time',
+    expected_weekly_hours DECIMAL(5,2) NULL,
+    flex_eligible TINYINT(1) NOT NULL DEFAULT 0,
+    opening_eligible TINYINT(1) NOT NULL DEFAULT 0,
+    closing_eligible TINYINT(1) NOT NULL DEFAULT 0,
+    availability_json JSON NULL,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT fk_workforce_membership FOREIGN KEY (membership_id) REFERENCES memberships(id) ON DELETE CASCADE,
+    CONSTRAINT fk_workforce_org FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS teams (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    organization_id BIGINT UNSIGNED NOT NULL,
+    department_id BIGINT UNSIGNED NULL,
+    name VARCHAR(140) NOT NULL,
+    active TINYINT(1) NOT NULL DEFAULT 1,
+    UNIQUE KEY uq_team_name (organization_id,name),
+    CONSTRAINT fk_team_org FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE,
+    CONSTRAINT fk_team_department FOREIGN KEY (department_id) REFERENCES departments(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS team_members (
+    team_id BIGINT UNSIGNED NOT NULL,
+    membership_id BIGINT UNSIGNED NOT NULL,
+    PRIMARY KEY (team_id,membership_id),
+    CONSTRAINT fk_tm_team FOREIGN KEY (team_id) REFERENCES teams(id) ON DELETE CASCADE,
+    CONSTRAINT fk_tm_member FOREIGN KEY (membership_id) REFERENCES memberships(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS providers (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    organization_id BIGINT UNSIGNED NOT NULL,
+    location_id BIGINT UNSIGNED NULL,
+    department_id BIGINT UNSIGNED NULL,
+    name VARCHAR(140) NOT NULL,
+    specialty VARCHAR(140) NULL,
+    active TINYINT(1) NOT NULL DEFAULT 1,
+    UNIQUE KEY uq_provider_name (organization_id,name),
+    CONSTRAINT fk_provider_org FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE,
+    CONSTRAINT fk_provider_location FOREIGN KEY (location_id) REFERENCES locations(id) ON DELETE SET NULL,
+    CONSTRAINT fk_provider_department FOREIGN KEY (department_id) REFERENCES departments(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS work_functions (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    organization_id BIGINT UNSIGNED NOT NULL,
+    department_id BIGINT UNSIGNED NULL,
+    name VARCHAR(140) NOT NULL,
+    color CHAR(7) NOT NULL DEFAULT '#0d9a7c',
+    active TINYINT(1) NOT NULL DEFAULT 1,
+    UNIQUE KEY uq_function_name (organization_id,name),
+    CONSTRAINT fk_function_org FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE,
+    CONSTRAINT fk_function_department FOREIGN KEY (department_id) REFERENCES departments(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS stations (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    organization_id BIGINT UNSIGNED NOT NULL,
+    location_id BIGINT UNSIGNED NULL,
+    department_id BIGINT UNSIGNED NULL,
+    name VARCHAR(140) NOT NULL,
+    active TINYINT(1) NOT NULL DEFAULT 1,
+    UNIQUE KEY uq_station_name (organization_id,name),
+    CONSTRAINT fk_station_org FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE,
+    CONSTRAINT fk_station_location FOREIGN KEY (location_id) REFERENCES locations(id) ON DELETE SET NULL,
+    CONSTRAINT fk_station_department FOREIGN KEY (department_id) REFERENCES departments(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS qualifications (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    organization_id BIGINT UNSIGNED NOT NULL,
+    name VARCHAR(140) NOT NULL,
+    active TINYINT(1) NOT NULL DEFAULT 1,
+    UNIQUE KEY uq_qualification_name (organization_id,name),
+    CONSTRAINT fk_qualification_org FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS staff_qualifications (
+    membership_id BIGINT UNSIGNED NOT NULL,
+    qualification_id BIGINT UNSIGNED NOT NULL,
+    expires_on DATE NULL,
+    verified_at TIMESTAMP NULL,
+    PRIMARY KEY (membership_id,qualification_id),
+    CONSTRAINT fk_sq_member FOREIGN KEY (membership_id) REFERENCES memberships(id) ON DELETE CASCADE,
+    CONSTRAINT fk_sq_qualification FOREIGN KEY (qualification_id) REFERENCES qualifications(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS eligibility_groups (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    organization_id BIGINT UNSIGNED NOT NULL,
+    name VARCHAR(140) NOT NULL,
+    description VARCHAR(255) NULL,
+    active TINYINT(1) NOT NULL DEFAULT 1,
+    UNIQUE KEY uq_eligibility_group_name (organization_id,name),
+    CONSTRAINT fk_eg_org FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS eligibility_group_positions (
+    eligibility_group_id BIGINT UNSIGNED NOT NULL,
+    position_id BIGINT UNSIGNED NOT NULL,
+    PRIMARY KEY (eligibility_group_id,position_id),
+    CONSTRAINT fk_egp_group FOREIGN KEY (eligibility_group_id) REFERENCES eligibility_groups(id) ON DELETE CASCADE,
+    CONSTRAINT fk_egp_position FOREIGN KEY (position_id) REFERENCES positions(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS schedule_periods (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    organization_id BIGINT UNSIGNED NOT NULL,
+    name VARCHAR(140) NOT NULL,
+    starts_on DATE NOT NULL,
+    ends_on DATE NOT NULL,
+    status ENUM('draft','open','review','published','archived') NOT NULL DEFAULT 'draft',
+    created_by BIGINT UNSIGNED NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_period_org FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE,
+    CONSTRAINT fk_period_creator FOREIGN KEY (created_by) REFERENCES users(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS shifts (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    organization_id BIGINT UNSIGNED NOT NULL,
+    schedule_period_id BIGINT UNSIGNED NULL,
+    location_id BIGINT UNSIGNED NOT NULL,
+    department_id BIGINT UNSIGNED NOT NULL,
+    assigned_membership_id BIGINT UNSIGNED NULL,
+    shift_date DATE NOT NULL,
+    starts_at TIME NOT NULL,
+    ends_at TIME NOT NULL,
+    status ENUM('draft','assigned','open','filled','cancelled') NOT NULL DEFAULT 'draft',
+    eligibility_mode ENUM('exact','selected','group') NOT NULL DEFAULT 'exact',
+    exact_position_id BIGINT UNSIGNED NULL,
+    eligibility_group_id BIGINT UNSIGNED NULL,
+    cross_department_mode ENUM('prohibited','approval','allowed') NOT NULL DEFAULT 'prohibited',
+    notes VARCHAR(500) NULL,
+    created_by BIGINT UNSIGNED NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    KEY idx_shift_org_date (organization_id,shift_date),
+    CONSTRAINT fk_shift_org FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE,
+    CONSTRAINT fk_shift_period FOREIGN KEY (schedule_period_id) REFERENCES schedule_periods(id) ON DELETE SET NULL,
+    CONSTRAINT fk_shift_location FOREIGN KEY (location_id) REFERENCES locations(id),
+    CONSTRAINT fk_shift_department FOREIGN KEY (department_id) REFERENCES departments(id),
+    CONSTRAINT fk_shift_assignee FOREIGN KEY (assigned_membership_id) REFERENCES memberships(id) ON DELETE SET NULL,
+    CONSTRAINT fk_shift_position FOREIGN KEY (exact_position_id) REFERENCES positions(id) ON DELETE SET NULL,
+    CONSTRAINT fk_shift_group FOREIGN KEY (eligibility_group_id) REFERENCES eligibility_groups(id) ON DELETE SET NULL,
+    CONSTRAINT fk_shift_creator FOREIGN KEY (created_by) REFERENCES users(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS shift_eligible_positions (
+    shift_id BIGINT UNSIGNED NOT NULL,
+    position_id BIGINT UNSIGNED NOT NULL,
+    PRIMARY KEY (shift_id,position_id),
+    CONSTRAINT fk_sep_shift FOREIGN KEY (shift_id) REFERENCES shifts(id) ON DELETE CASCADE,
+    CONSTRAINT fk_sep_position FOREIGN KEY (position_id) REFERENCES positions(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS shift_required_qualifications (
+    shift_id BIGINT UNSIGNED NOT NULL,
+    qualification_id BIGINT UNSIGNED NOT NULL,
+    PRIMARY KEY (shift_id,qualification_id),
+    CONSTRAINT fk_srq_shift FOREIGN KEY (shift_id) REFERENCES shifts(id) ON DELETE CASCADE,
+    CONSTRAINT fk_srq_qualification FOREIGN KEY (qualification_id) REFERENCES qualifications(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS shift_requests (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    organization_id BIGINT UNSIGNED NOT NULL,
+    shift_id BIGINT UNSIGNED NOT NULL,
+    membership_id BIGINT UNSIGNED NOT NULL,
+    status ENUM('pending','approved','denied','withdrawn') NOT NULL DEFAULT 'pending',
+    eligibility_result ENUM('eligible','approval','ineligible') NOT NULL,
+    eligibility_reasons JSON NULL,
+    reviewed_by BIGINT UNSIGNED NULL,
+    reviewed_at TIMESTAMP NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uq_shift_request (shift_id,membership_id),
+    CONSTRAINT fk_request_org FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE,
+    CONSTRAINT fk_request_shift FOREIGN KEY (shift_id) REFERENCES shifts(id) ON DELETE CASCADE,
+    CONSTRAINT fk_request_member FOREIGN KEY (membership_id) REFERENCES memberships(id) ON DELETE CASCADE,
+    CONSTRAINT fk_request_reviewer FOREIGN KEY (reviewed_by) REFERENCES users(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS coverage_assignments (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    organization_id BIGINT UNSIGNED NOT NULL,
+    shift_id BIGINT UNSIGNED NOT NULL,
+    membership_id BIGINT UNSIGNED NOT NULL,
+    provider_id BIGINT UNSIGNED NULL,
+    station_id BIGINT UNSIGNED NULL,
+    work_function_id BIGINT UNSIGNED NULL,
+    coverage_type ENUM('primary','backup','flex','shared') NOT NULL DEFAULT 'primary',
+    starts_at TIME NULL,
+    ends_at TIME NULL,
+    notes VARCHAR(500) NULL,
+    created_by BIGINT UNSIGNED NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_coverage_org FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE,
+    CONSTRAINT fk_coverage_shift FOREIGN KEY (shift_id) REFERENCES shifts(id) ON DELETE CASCADE,
+    CONSTRAINT fk_coverage_member FOREIGN KEY (membership_id) REFERENCES memberships(id) ON DELETE CASCADE,
+    CONSTRAINT fk_coverage_provider FOREIGN KEY (provider_id) REFERENCES providers(id) ON DELETE SET NULL,
+    CONSTRAINT fk_coverage_station FOREIGN KEY (station_id) REFERENCES stations(id) ON DELETE SET NULL,
+    CONSTRAINT fk_coverage_function FOREIGN KEY (work_function_id) REFERENCES work_functions(id) ON DELETE SET NULL,
+    CONSTRAINT fk_coverage_creator FOREIGN KEY (created_by) REFERENCES users(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

@@ -7,6 +7,7 @@ require_once __DIR__ . '/Database.php';
 require_once __DIR__ . '/Csrf.php';
 require_once __DIR__ . '/Auth.php';
 require_once __DIR__ . '/AtlasRepository.php';
+require_once __DIR__ . '/SchedulingRepository.php';
 
 Config::load(dirname(__DIR__));
 
@@ -21,4 +22,3 @@ session_set_cookie_params([
 if (session_status() !== PHP_SESSION_ACTIVE) {
     session_start();
 }
-

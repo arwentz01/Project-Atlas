@@ -60,3 +60,25 @@ document.querySelectorAll('[data-copy]').forEach((button) => {
 });
 
 document.querySelectorAll('.page-flash button').forEach((button) => button.addEventListener('click', () => button.parentElement.remove()));
+
+document.querySelectorAll('.people-table [data-search-row] .row-menu').forEach((button, index) => {
+  button.title = 'Edit workforce profile';
+  button.addEventListener('click', () => document.getElementById(`staffModal${index}`)?.showModal());
+});
+
+if (document.querySelector('[data-structure-panel]') && document.getElementById('catalogModal')) {
+  const header = document.querySelector('.page-header');
+  const catalogButton = document.createElement('button');
+  catalogButton.className = 'button secondary catalog-launcher';
+  catalogButton.innerHTML = '+ Operational resource';
+  catalogButton.addEventListener('click', () => document.getElementById('catalogModal').showModal());
+  header?.appendChild(catalogButton);
+}
+
+const eligibilityMode = document.querySelector('[data-eligibility-mode]');
+const updateEligibilityFields = () => {
+  const mode = eligibilityMode?.value || 'exact';
+  document.querySelectorAll('.eligibility-field').forEach((field) => field.hidden = field.dataset.mode !== mode);
+};
+eligibilityMode?.addEventListener('change', updateEligibilityFields);
+updateEligibilityFields();
