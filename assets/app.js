@@ -1,6 +1,8 @@
 const sidebar = document.getElementById('sidebar');
 const menuButton = document.getElementById('menuButton');
 const toast = document.getElementById('toast');
+const orgSwitcher = document.getElementById('orgSwitcher');
+const orgDropdown = document.getElementById('orgDropdown');
 
 menuButton?.addEventListener('click', () => sidebar?.classList.toggle('open'));
 
@@ -20,3 +22,41 @@ document.querySelectorAll('.segmented button').forEach((button) => {
   });
 });
 
+orgSwitcher?.addEventListener('click', () => orgDropdown?.classList.toggle('open'));
+
+document.querySelectorAll('[data-modal]').forEach((button) => {
+  button.addEventListener('click', () => document.getElementById(button.dataset.modal)?.showModal());
+});
+
+document.querySelectorAll('.modal-close').forEach((button) => {
+  button.addEventListener('click', () => button.closest('dialog')?.close());
+});
+
+document.querySelectorAll('.atlas-modal').forEach((modal) => {
+  modal.addEventListener('click', (event) => { if (event.target === modal) modal.close(); });
+});
+
+document.querySelectorAll('[data-structure-tab]').forEach((button) => {
+  button.addEventListener('click', () => {
+    document.querySelectorAll('[data-structure-tab]').forEach((item) => item.classList.remove('active'));
+    document.querySelectorAll('[data-structure-panel]').forEach((item) => item.classList.remove('active'));
+    button.classList.add('active');
+    document.querySelector(`[data-structure-panel="${button.dataset.structureTab}"]`)?.classList.add('active');
+  });
+});
+
+document.querySelector('[data-table-search]')?.addEventListener('input', (event) => {
+  const query = event.target.value.toLowerCase();
+  document.querySelectorAll('[data-search-row]').forEach((row) => row.hidden = !row.textContent.toLowerCase().includes(query));
+});
+
+document.querySelectorAll('[data-copy]').forEach((button) => {
+  button.addEventListener('click', async () => {
+    const input = document.getElementById(button.dataset.copy);
+    if (!input) return;
+    await navigator.clipboard.writeText(input.value);
+    button.textContent = 'Copied';
+  });
+});
+
+document.querySelectorAll('.page-flash button').forEach((button) => button.addEventListener('click', () => button.parentElement.remove()));
