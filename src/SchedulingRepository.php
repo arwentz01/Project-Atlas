@@ -73,6 +73,7 @@ final class SchedulingRepository
         if((int)$x['staff_department_id']!==(int)$x['department_id']){if($x['cross_department_mode']==='prohibited')$reasons[]='Cross-department coverage is not allowed.';elseif($x['cross_department_mode']==='approval'){$approval=true;$reasons[]='Supervisor approval is required for cross-department coverage.';}}
         $q=$this->db->prepare('SELECT COUNT(*) FROM shifts WHERE organization_id=? AND assigned_membership_id=? AND shift_date=? AND status IN ("assigned","filled") AND starts_at < ? AND ends_at > ?');$q->execute([$organizationId,$membershipId,$x['shift_date'],$x['ends_at'],$x['starts_at']]);if($q->fetchColumn())$reasons[]='This shift overlaps your existing schedule.';
         $weekday=(int)(new DateTimeImmutable($x['shift_date']))->format('N');$q=$this->db->prepare('SELECT COUNT(*) FROM availability_entries WHERE organization_id=? AND membership_id=? AND status="approved" AND availability="unavailable" AND ((entry_type="date_exception" AND applies_on=?) OR (entry_type="recurring" AND weekday=?)) AND (starts_at IS NULL OR starts_at < ?) AND (ends_at IS NULL OR ends_at > ?)');$q->execute([$organizationId,$membershipId,$x['shift_date'],$weekday,$x['ends_at'],$x['starts_at']]);if($q->fetchColumn())$reasons[]='This shift conflicts with your approved availability.';
+        $q=$this->db->prepare('SELECT COUNT(*) FROM time_off_requests WHERE organization_id=? AND membership_id=? AND status="approved" AND ? BETWEEN starts_on AND ends_on AND (starts_at IS NULL OR (starts_at < ? AND ends_at > ?))');$q->execute([$organizationId,$membershipId,$x['shift_date'],$x['ends_at'],$x['starts_at']]);if($q->fetchColumn())$reasons[]='This shift conflicts with approved time off.';
         $q=$this->db->prepare('SELECT maximum_weekly_hours FROM workforce_preferences WHERE organization_id=? AND membership_id=?');$q->execute([$organizationId,$membershipId]);$maximum=(float)($q->fetchColumn()?:0);if($maximum>0){$monday=(new DateTimeImmutable($x['shift_date']))->modify('monday this week')->format('Y-m-d');$q=$this->db->prepare('SELECT COALESCE(SUM(TIME_TO_SEC(TIMEDIFF(ends_at,starts_at))/3600),0) FROM shifts WHERE organization_id=? AND assigned_membership_id=? AND shift_date BETWEEN ? AND DATE_ADD(?,INTERVAL 6 DAY) AND status IN ("assigned","filled")');$q->execute([$organizationId,$membershipId,$monday,$monday]);$scheduled=(float)$q->fetchColumn();$duration=((strtotime($x['ends_at'])-strtotime($x['starts_at']))/3600);if($scheduled+$duration>$maximum){$approval=true;$reasons[]='Supervisor approval is required because this exceeds your preferred weekly maximum.';}}
         $q=$this->db->prepare('SELECT q.name FROM shift_required_qualifications srq JOIN qualifications q ON q.id=srq.qualification_id LEFT JOIN staff_qualifications sq ON sq.qualification_id=q.id AND sq.membership_id=? AND (sq.expires_on IS NULL OR sq.expires_on>=?) WHERE srq.shift_id=? AND sq.membership_id IS NULL');$q->execute([$membershipId,$x['shift_date'],$shiftId]);$missing=$q->fetchAll(PDO::FETCH_COLUMN);if($missing)$reasons[]='Missing qualification: '.implode(', ',$missing).'.';
         $hard=array_filter($reasons,fn($r)=>!str_contains($r,'approval'));return ['result'=>$hard?'ineligible':($approval?'approval':'eligible'),'reasons'=>$reasons?:['You meet the configured requirements.']];
@@ -191,6 +192,36 @@ final class SchedulingRepository
     public function deleteAvailability(int $oid,int $memberId,int $entryId): void
     {
         $member=$this->membership($oid,$memberId);$q=$this->db->prepare('DELETE FROM availability_entries WHERE id=? AND organization_id=? AND membership_id=?');$q->execute([$entryId,$oid,$member]);if(!$q->rowCount())throw new InvalidArgumentException('Availability entry unavailable.');
+    }
+
+    public function requestTypes(int $oid): array
+    {
+        $q=$this->db->prepare('SELECT * FROM request_types WHERE organization_id=? AND active=1 ORDER BY name');$q->execute([$oid]);return $q->fetchAll();
+    }
+
+    public function addRequestType(int $oid,string $name,bool $paid): void
+    {
+        $name=trim($name);if($name==='')throw new InvalidArgumentException('Request type name is required.');$q=$this->db->prepare('INSERT INTO request_types (organization_id,name,paid) VALUES (?,?,?)');$q->execute([$oid,$name,$paid]);
+    }
+
+    public function createTimeOff(int $oid,int $memberId,array $in): void
+    {
+        $member=$this->membership($oid,$memberId);$type=null;if(!empty($in['request_type_id'])){$q=$this->db->prepare('SELECT id FROM request_types WHERE id=? AND organization_id=? AND active=1');$q->execute([(int)$in['request_type_id'],$oid]);$type=$q->fetchColumn()?:null;}$start=(string)($in['starts_on']??'');$end=(string)($in['ends_on']??'');if(!$start||!$end||$end<$start)throw new InvalidArgumentException('Enter a valid start and end date.');$startTime=!empty($in['starts_at'])?$in['starts_at']:null;$endTime=!empty($in['ends_at'])?$in['ends_at']:null;if(($startTime&&!$endTime)||(!$startTime&&$endTime)||($startTime&&$endTime&&$endTime<=$startTime))throw new InvalidArgumentException('Enter both partial-day times in a valid range.');$q=$this->db->prepare('INSERT INTO time_off_requests (organization_id,membership_id,request_type_id,starts_on,ends_on,starts_at,ends_at,employee_note) VALUES (?,?,?,?,?,?,?,?)');$q->execute([$oid,$member,$type,$start,$end,$startTime,$endTime,trim((string)($in['employee_note']??''))?:null]);
+    }
+
+    public function timeOff(int $oid,?int $memberId=null): array
+    {
+        $sql='SELECT tor.*,rt.name type_name,rt.paid,u.name staff_name,(SELECT COUNT(*) FROM shifts s WHERE s.organization_id=tor.organization_id AND s.assigned_membership_id=tor.membership_id AND s.shift_date BETWEEN tor.starts_on AND tor.ends_on AND s.status IN ("assigned","filled") AND (tor.starts_at IS NULL OR (s.starts_at<tor.ends_at AND s.ends_at>tor.starts_at))) conflict_count FROM time_off_requests tor JOIN memberships m ON m.id=tor.membership_id JOIN users u ON u.id=m.user_id LEFT JOIN request_types rt ON rt.id=tor.request_type_id WHERE tor.organization_id=?';$args=[$oid];if($memberId){$sql.=' AND tor.membership_id=?';$args[]=$this->membership($oid,$memberId);}$sql.=' ORDER BY FIELD(tor.status,"pending","approved","denied","cancelled"),tor.starts_on DESC';$q=$this->db->prepare($sql);$q->execute($args);return $q->fetchAll();
+    }
+
+    public function reviewTimeOff(int $oid,int $uid,int $requestId,string $decision,string $note=''): void
+    {
+        if(!in_array($decision,['approved','denied'],true))throw new InvalidArgumentException('Invalid request decision.');$q=$this->db->prepare('UPDATE time_off_requests SET status=?,manager_note=?,reviewed_by=?,reviewed_at=NOW() WHERE id=? AND organization_id=? AND status="pending"');$q->execute([$decision,trim($note)?:null,$uid,$requestId,$oid]);if(!$q->rowCount())throw new InvalidArgumentException('Pending time-off request unavailable.');$this->audit($oid,$uid,'time_off.'.$decision,(string)$requestId);
+    }
+
+    public function cancelTimeOff(int $oid,int $memberId,int $requestId): void
+    {
+        $member=$this->membership($oid,$memberId);$q=$this->db->prepare('UPDATE time_off_requests SET status="cancelled" WHERE id=? AND organization_id=? AND membership_id=? AND status IN ("pending","approved")');$q->execute([$requestId,$oid,$member]);if(!$q->rowCount())throw new InvalidArgumentException('Time-off request cannot be cancelled.');
     }
 
     private function membership(int $organizationId,mixed $id): int{$q=$this->db->prepare('SELECT id FROM memberships WHERE id=? AND organization_id=? AND status="active"');$q->execute([(int)$id,$organizationId]);$found=$q->fetchColumn();if(!$found)throw new InvalidArgumentException('Staff member unavailable.');return (int)$found;}
