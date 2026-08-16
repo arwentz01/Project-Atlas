@@ -453,3 +453,35 @@ CREATE TABLE IF NOT EXISTS availability_entries (
     CONSTRAINT fk_availability_member FOREIGN KEY (membership_id) REFERENCES memberships(id) ON DELETE CASCADE,
     CONSTRAINT fk_availability_reviewer FOREIGN KEY (reviewed_by) REFERENCES users(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS request_types (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    organization_id BIGINT UNSIGNED NOT NULL,
+    name VARCHAR(100) NOT NULL,
+    paid TINYINT(1) NOT NULL DEFAULT 0,
+    active TINYINT(1) NOT NULL DEFAULT 1,
+    UNIQUE KEY uq_request_type (organization_id,name),
+    CONSTRAINT fk_request_type_org FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS time_off_requests (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    organization_id BIGINT UNSIGNED NOT NULL,
+    membership_id BIGINT UNSIGNED NOT NULL,
+    request_type_id BIGINT UNSIGNED NULL,
+    starts_on DATE NOT NULL,
+    ends_on DATE NOT NULL,
+    starts_at TIME NULL,
+    ends_at TIME NULL,
+    employee_note VARCHAR(500) NULL,
+    manager_note VARCHAR(500) NULL,
+    status ENUM('pending','approved','denied','cancelled') NOT NULL DEFAULT 'pending',
+    reviewed_by BIGINT UNSIGNED NULL,
+    reviewed_at TIMESTAMP NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    KEY idx_time_off_org_status (organization_id,status,starts_on),
+    CONSTRAINT fk_time_off_org FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE,
+    CONSTRAINT fk_time_off_member FOREIGN KEY (membership_id) REFERENCES memberships(id) ON DELETE CASCADE,
+    CONSTRAINT fk_time_off_type FOREIGN KEY (request_type_id) REFERENCES request_types(id) ON DELETE SET NULL,
+    CONSTRAINT fk_time_off_reviewer FOREIGN KEY (reviewed_by) REFERENCES users(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
