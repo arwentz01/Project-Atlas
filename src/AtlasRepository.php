@@ -133,7 +133,7 @@ final class AtlasRepository
         ]);
         $invitationId = (int)$this->db->lastInsertId();
         $this->audit($organizationId, $userId, 'invitation.created', 'invitation', $invitationId, ['email' => $email]);
-        return rtrim($baseUrl, '/') . '/invite?token=' . $token;
+        return $baseUrl . (str_contains($baseUrl, '?') ? '&' : '?') . 'token=' . $token;
     }
 
     public function invitation(string $token): ?array
