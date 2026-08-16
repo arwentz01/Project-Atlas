@@ -91,6 +91,76 @@ final class SchedulingRepository
         $q=$this->db->prepare('SELECT ca.*,s.shift_date,s.starts_at shift_start,s.ends_at shift_end,u.name staff_name,p.name provider_name,st.name station_name,wf.name function_name,d.name department_name FROM coverage_assignments ca JOIN shifts s ON s.id=ca.shift_id JOIN memberships m ON m.id=ca.membership_id JOIN users u ON u.id=m.user_id JOIN departments d ON d.id=s.department_id LEFT JOIN providers p ON p.id=ca.provider_id LEFT JOIN stations st ON st.id=ca.station_id LEFT JOIN work_functions wf ON wf.id=ca.work_function_id WHERE ca.organization_id=? AND s.shift_date=? ORDER BY s.starts_at,u.name');$q->execute([$organizationId,$date]);return $q->fetchAll();
     }
 
+    public function periods(int $oid): array
+    {
+        $q=$this->db->prepare('SELECT sp.*,(SELECT COUNT(*) FROM shifts s WHERE s.schedule_period_id=sp.id AND s.status<>"cancelled") shift_count FROM schedule_periods sp WHERE sp.organization_id=? ORDER BY sp.starts_on DESC');$q->execute([$oid]);return $q->fetchAll();
+    }
+
+    public function createPeriod(int $oid,int $uid,array $in): void
+    {
+        $name=trim((string)($in['name']??''));$start=(string)($in['starts_on']??'');$end=(string)($in['ends_on']??'');if($name===''||!$start||!$end||$end<$start)throw new InvalidArgumentException('Enter a name and a valid date range.');$q=$this->db->prepare('INSERT INTO schedule_periods (organization_id,name,starts_on,ends_on,status,created_by) VALUES (?,?,?,?,"draft",?)');$q->execute([$oid,$name,$start,$end,$uid]);$this->audit($oid,$uid,'period.created',(string)$this->db->lastInsertId());
+    }
+
+    public function setPeriodStatus(int $oid,int $uid,int $id,string $status): void
+    {
+        if(!in_array($status,['draft','open','review','published','archived'],true))throw new InvalidArgumentException('Invalid schedule status.');$q=$this->db->prepare('UPDATE schedule_periods SET status=? WHERE id=? AND organization_id=?');$q->execute([$status,$id,$oid]);if(!$q->rowCount())throw new InvalidArgumentException('Schedule period unavailable.');if($status==='published')$this->db->prepare('UPDATE shifts SET status=IF(assigned_membership_id IS NULL,"open","assigned") WHERE schedule_period_id=? AND organization_id=? AND status<>"cancelled"')->execute([$id,$oid]);$this->audit($oid,$uid,'period.'.$status,(string)$id);
+    }
+
+    public function assignShift(int $oid,int $uid,int $shiftId,int $memberId,bool $override,string $reason=''): void
+    {
+        $shift=$this->owned('shifts',$oid,$shiftId,true);$member=$this->membership($oid,$memberId);$elig=$this->eligibility($oid,$member,$shift);if($elig['result']!=='eligible'&&!$override)throw new InvalidArgumentException(implode(' ',$elig['reasons']).' A manager override is required.');if($override&&trim($reason)==='')throw new InvalidArgumentException('Enter a reason for the manager override.');$this->db->prepare('UPDATE shifts SET assigned_membership_id=?,status="assigned" WHERE id=? AND organization_id=?')->execute([$member,$shift,$oid]);$this->audit($oid,$uid,$override?'shift.override_assigned':'shift.assigned',$shift.($reason?': '.$reason:''));
+    }
+
+    public function cancelShift(int $oid,int $uid,int $shiftId): void
+    {
+        $shift=$this->owned('shifts',$oid,$shiftId,true);$this->db->prepare('UPDATE shifts SET status="cancelled" WHERE id=? AND organization_id=?')->execute([$shift,$oid]);$this->audit($oid,$uid,'shift.cancelled',(string)$shift);
+    }
+
+    public function copyWeek(int $oid,int $uid,string $source,string $target): int
+    {
+        if(!$source||!$target)throw new InvalidArgumentException('Choose source and destination weeks.');$days=(int)(new DateTimeImmutable($source))->diff(new DateTimeImmutable($target))->format('%r%a');$q=$this->db->prepare('SELECT * FROM shifts WHERE organization_id=? AND shift_date BETWEEN ? AND DATE_ADD(?,INTERVAL 6 DAY) AND status<>"cancelled"');$q->execute([$oid,$source,$source]);$count=0;$this->db->beginTransaction();try{foreach($q->fetchAll() as $r){$date=(new DateTimeImmutable($r['shift_date']))->modify(($days>=0?'+':'').$days.' days')->format('Y-m-d');$i=$this->db->prepare('INSERT INTO shifts (organization_id,location_id,department_id,assigned_membership_id,shift_date,starts_at,ends_at,status,eligibility_mode,exact_position_id,eligibility_group_id,cross_department_mode,notes,created_by) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)');$i->execute([$oid,$r['location_id'],$r['department_id'],$r['assigned_membership_id'],$date,$r['starts_at'],$r['ends_at'],$r['assigned_membership_id']?'assigned':'open',$r['eligibility_mode'],$r['exact_position_id'],$r['eligibility_group_id'],$r['cross_department_mode'],$r['notes'],$uid]);$new=(int)$this->db->lastInsertId();$this->db->prepare('INSERT INTO shift_eligible_positions SELECT ?,position_id FROM shift_eligible_positions WHERE shift_id=?')->execute([$new,$r['id']]);$this->db->prepare('INSERT INTO shift_required_qualifications SELECT ?,qualification_id FROM shift_required_qualifications WHERE shift_id=?')->execute([$new,$r['id']]);$count++;}$this->db->commit();}catch(Throwable $e){$this->db->rollBack();throw $e;}$this->audit($oid,$uid,'week.copied',(string)$count);return $count;
+    }
+
+    public function requests(int $oid): array
+    {
+        $q=$this->db->prepare('SELECT sr.*,u.name staff_name,s.shift_date,s.starts_at,s.ends_at,d.name department_name FROM shift_requests sr JOIN memberships m ON m.id=sr.membership_id JOIN users u ON u.id=m.user_id JOIN shifts s ON s.id=sr.shift_id JOIN departments d ON d.id=s.department_id WHERE sr.organization_id=? ORDER BY FIELD(sr.status,"pending","approved","denied","withdrawn"),sr.created_at DESC');$q->execute([$oid]);return $q->fetchAll();
+    }
+
+    public function reviewRequest(int $oid,int $uid,int $requestId,string $decision): void
+    {
+        if(!in_array($decision,['approved','denied'],true))throw new InvalidArgumentException('Invalid review decision.');$q=$this->db->prepare('SELECT * FROM shift_requests WHERE id=? AND organization_id=? AND status="pending"');$q->execute([$requestId,$oid]);$r=$q->fetch();if(!$r)throw new InvalidArgumentException('Pending request unavailable.');$this->db->beginTransaction();try{$this->db->prepare('UPDATE shift_requests SET status=?,reviewed_by=?,reviewed_at=NOW() WHERE id=?')->execute([$decision,$uid,$requestId]);if($decision==='approved')$this->db->prepare('UPDATE shifts SET assigned_membership_id=?,status="assigned" WHERE id=? AND organization_id=?')->execute([$r['membership_id'],$r['shift_id'],$oid]);$this->db->commit();}catch(Throwable $e){$this->db->rollBack();throw $e;}$this->audit($oid,$uid,'request.'.$decision,(string)$requestId);
+    }
+
+    public function memberSchedule(int $oid,int $memberId): array
+    {
+        $q=$this->db->prepare('SELECT s.*,l.name location_name,d.name department_name FROM shifts s JOIN locations l ON l.id=s.location_id JOIN departments d ON d.id=s.department_id WHERE s.organization_id=? AND s.assigned_membership_id=? AND s.status IN ("assigned","filled") ORDER BY s.shift_date,s.starts_at');$q->execute([$oid,$memberId]);return $q->fetchAll();
+    }
+
+    public function addProviderSession(int $oid,int $uid,array $in): void
+    {
+        $provider=$this->owned('providers',$oid,$in['provider_id']??null,true);$location=$this->owned('locations',$oid,$in['location_id']??null,true);$department=$this->owned('departments',$oid,$in['department_id']??null,true);if(empty($in['session_date'])||empty($in['starts_at'])||empty($in['ends_at']))throw new InvalidArgumentException('Session date and times are required.');$q=$this->db->prepare('INSERT INTO provider_sessions (organization_id,provider_id,location_id,department_id,session_date,starts_at,ends_at,support_count,notes,created_by) VALUES (?,?,?,?,?,?,?,?,?,?)');$q->execute([$oid,$provider,$location,$department,$in['session_date'],$in['starts_at'],$in['ends_at'],max(1,(int)($in['support_count']??1)),trim((string)($in['notes']??''))?:null,$uid]);$this->audit($oid,$uid,'provider_session.created',(string)$this->db->lastInsertId());
+    }
+
+    public function providerSessions(int $oid,?string $date=null): array
+    {
+        $sql='SELECT ps.*,p.name provider_name,l.name location_name,d.name department_name,(SELECT COUNT(*) FROM coverage_assignments ca JOIN shifts s ON s.id=ca.shift_id WHERE ca.provider_id=ps.provider_id AND s.shift_date=ps.session_date) assigned_support FROM provider_sessions ps JOIN providers p ON p.id=ps.provider_id JOIN locations l ON l.id=ps.location_id JOIN departments d ON d.id=ps.department_id WHERE ps.organization_id=?';$args=[$oid];if($date){$sql.=' AND ps.session_date=?';$args[]=$date;}$sql.=' ORDER BY ps.session_date,ps.starts_at';$q=$this->db->prepare($sql);$q->execute($args);return $q->fetchAll();
+    }
+
+    public function createRotation(int $oid,int $uid,array $in): void
+    {
+        $member=!empty($in['membership_id'])?$this->membership($oid,$in['membership_id']):null;$location=$this->owned('locations',$oid,$in['location_id']??null,true);$department=$this->owned('departments',$oid,$in['department_id']??null,true);$position=$this->owned('positions',$oid,$in['position_id']??null,true);$days=array_values(array_intersect(array_map('intval',(array)($in['weekdays']??[])),range(1,7)));if(trim((string)($in['name']??''))===''||!$days)throw new InvalidArgumentException('Name the rotation and select at least one weekday.');$q=$this->db->prepare('INSERT INTO rotations (organization_id,name,membership_id,location_id,department_id,position_id,weekdays,starts_at,ends_at,effective_from,effective_to,week_interval,created_by) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)');$q->execute([$oid,trim((string)$in['name']),$member,$location,$department,$position,implode(',',$days),$in['starts_at'],$in['ends_at'],$in['effective_from'],!empty($in['effective_to'])?$in['effective_to']:null,max(1,(int)($in['week_interval']??1)),$uid]);$this->audit($oid,$uid,'rotation.created',(string)$this->db->lastInsertId());
+    }
+
+    public function rotations(int $oid): array
+    {
+        $q=$this->db->prepare('SELECT r.*,u.name staff_name,l.name location_name,d.name department_name,p.name position_name FROM rotations r LEFT JOIN memberships m ON m.id=r.membership_id LEFT JOIN users u ON u.id=m.user_id JOIN locations l ON l.id=r.location_id JOIN departments d ON d.id=r.department_id JOIN positions p ON p.id=r.position_id WHERE r.organization_id=? AND r.active=1 ORDER BY r.name');$q->execute([$oid]);return $q->fetchAll();
+    }
+
+    public function generateRotation(int $oid,int $uid,int $rotationId,string $through): int
+    {
+        $q=$this->db->prepare('SELECT * FROM rotations WHERE id=? AND organization_id=? AND active=1');$q->execute([$rotationId,$oid]);$r=$q->fetch();if(!$r)throw new InvalidArgumentException('Rotation unavailable.');$end=min($through,$r['effective_to']?:$through);$date=new DateTimeImmutable($r['effective_from']);$limit=new DateTimeImmutable($end);$days=array_map('intval',explode(',',$r['weekdays']));$count=0;$insert=$this->db->prepare('INSERT INTO shifts (organization_id,location_id,department_id,assigned_membership_id,shift_date,starts_at,ends_at,status,eligibility_mode,exact_position_id,cross_department_mode,notes,created_by) VALUES (?,?,?,?,?,?,?,?,"exact",?,"prohibited",?,?)');while($date<=$limit){$weeks=intdiv((int)(new DateTimeImmutable($r['effective_from']))->diff($date)->days,7);if(in_array((int)$date->format('N'),$days,true)&&$weeks%(int)$r['week_interval']===0){$check=$this->db->prepare('SELECT COUNT(*) FROM shifts WHERE organization_id=? AND assigned_membership_id <=> ? AND shift_date=? AND starts_at=? AND department_id=?');$check->execute([$oid,$r['membership_id'],$date->format('Y-m-d'),$r['starts_at'],$r['department_id']]);if(!$check->fetchColumn()){$insert->execute([$oid,$r['location_id'],$r['department_id'],$r['membership_id'],$date->format('Y-m-d'),$r['starts_at'],$r['ends_at'],$r['membership_id']?'assigned':'open',$r['position_id'],'Generated from '.$r['name'],$uid]);$sid=(int)$this->db->lastInsertId();$this->db->prepare('INSERT INTO rotation_generated_shifts (rotation_id,shift_id) VALUES (?,?)')->execute([$rotationId,$sid]);$count++;}}$date=$date->modify('+1 day');}$this->audit($oid,$uid,'rotation.generated',(string)$count);return $count;
+    }
+
     private function membership(int $organizationId,mixed $id): int{$q=$this->db->prepare('SELECT id FROM memberships WHERE id=? AND organization_id=? AND status="active"');$q->execute([(int)$id,$organizationId]);$found=$q->fetchColumn();if(!$found)throw new InvalidArgumentException('Staff member unavailable.');return (int)$found;}
     private function owned(string $table,int $organizationId,mixed $id,bool $required=false): ?int{if(!$id){if($required)throw new InvalidArgumentException('A required organization resource is missing.');return null;}$allowed=['locations','departments','positions','providers','stations','work_functions','qualifications','eligibility_groups','shifts'];if(!in_array($table,$allowed,true))throw new LogicException('Invalid resource type.');$q=$this->db->prepare("SELECT id FROM {$table} WHERE id=? AND organization_id=?".($table!=='shifts'?' AND active=1':''));$q->execute([(int)$id,$organizationId]);$found=$q->fetchColumn();if(!$found)throw new InvalidArgumentException('A selected organization resource is unavailable.');return (int)$found;}
     private function audit(int $oid,int $uid,string $action,string $value):void{$q=$this->db->prepare('INSERT INTO audit_logs (organization_id,user_id,action,entity_type,metadata_json,ip_address) VALUES (?, ?, ?, "scheduling", ?, ?)');$q->execute([$oid,$uid,$action,json_encode(['value'=>$value]),$_SERVER['REMOTE_ADDR']??null]);}
