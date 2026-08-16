@@ -65,3 +65,5 @@ Then visit `http://localhost:8080`.
 Organization membership is checked server-side for every tenant-scoped action. Organization owners and administrators can change structure and issue invitations.
 
 After pulling this checkpoint into an existing Atlas installation, run `php bin/migrate.php` again so the provider-session and rotation tables are created. Existing accounts, organizations, and schedules are preserved.
+
+Run the `bin/check.php` script with the MAMP PHP binary to verify the PHP version, required extension, environment file, database connection, and migration state before browser testing. Organization administrators can also open the System Status page inside Atlas.
