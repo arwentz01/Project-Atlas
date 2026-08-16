@@ -22,13 +22,18 @@ This checkpoint connects Atlas's multi-tenant organization foundation while pres
 - Staff shift requests with plain-language eligibility results
 - Provider, station, and work-function coverage assignments
 - Date-specific ambulatory coverage board
+- Draft, open, review, published, and archived schedule periods
+- Manager shift assignment with audited eligibility overrides
+- Week copying and shift cancellation
+- Provider sessions with support-gap indicators
+- Recurring one- to four-week rotations and shift generation
+- Self-scheduling request review and approval
+- Employee My Schedule workspace
 - Responsive staff and manager navigation
 - PHI-free demo fixtures
 
 ## Intentionally deferred
 
-- Self-scheduling rules and approvals
-- Rotations and reusable schedule templates
 - Messaging
 - Time clock and attendance
 - Payroll and labor-cost modules
@@ -59,4 +64,4 @@ Then visit `http://localhost:8080`.
 
 Organization membership is checked server-side for every tenant-scoped action. Organization owners and administrators can change structure and issue invitations.
 
-After pulling this checkpoint into an existing Atlas installation, run `php bin/migrate.php` again so the scheduling and eligibility tables are created.
+After pulling this checkpoint into an existing Atlas installation, run `php bin/migrate.php` again so the provider-session and rotation tables are created. Existing accounts, organizations, and schedules are preserved.
