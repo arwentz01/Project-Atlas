@@ -358,3 +358,59 @@ CREATE TABLE IF NOT EXISTS coverage_assignments (
     CONSTRAINT fk_coverage_function FOREIGN KEY (work_function_id) REFERENCES work_functions(id) ON DELETE SET NULL,
     CONSTRAINT fk_coverage_creator FOREIGN KEY (created_by) REFERENCES users(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS provider_sessions (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    organization_id BIGINT UNSIGNED NOT NULL,
+    provider_id BIGINT UNSIGNED NOT NULL,
+    location_id BIGINT UNSIGNED NOT NULL,
+    department_id BIGINT UNSIGNED NOT NULL,
+    session_date DATE NOT NULL,
+    starts_at TIME NOT NULL,
+    ends_at TIME NOT NULL,
+    support_count SMALLINT UNSIGNED NOT NULL DEFAULT 1,
+    status ENUM('scheduled','cancelled') NOT NULL DEFAULT 'scheduled',
+    notes VARCHAR(500) NULL,
+    created_by BIGINT UNSIGNED NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    KEY idx_provider_session_org_date (organization_id,session_date),
+    CONSTRAINT fk_ps_org FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE,
+    CONSTRAINT fk_ps_provider FOREIGN KEY (provider_id) REFERENCES providers(id) ON DELETE CASCADE,
+    CONSTRAINT fk_ps_location FOREIGN KEY (location_id) REFERENCES locations(id),
+    CONSTRAINT fk_ps_department FOREIGN KEY (department_id) REFERENCES departments(id),
+    CONSTRAINT fk_ps_creator FOREIGN KEY (created_by) REFERENCES users(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS rotations (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    organization_id BIGINT UNSIGNED NOT NULL,
+    name VARCHAR(140) NOT NULL,
+    membership_id BIGINT UNSIGNED NULL,
+    location_id BIGINT UNSIGNED NOT NULL,
+    department_id BIGINT UNSIGNED NOT NULL,
+    position_id BIGINT UNSIGNED NOT NULL,
+    weekdays VARCHAR(20) NOT NULL,
+    starts_at TIME NOT NULL,
+    ends_at TIME NOT NULL,
+    effective_from DATE NOT NULL,
+    effective_to DATE NULL,
+    week_interval SMALLINT UNSIGNED NOT NULL DEFAULT 1,
+    active TINYINT(1) NOT NULL DEFAULT 1,
+    created_by BIGINT UNSIGNED NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_rotation_org FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE,
+    CONSTRAINT fk_rotation_member FOREIGN KEY (membership_id) REFERENCES memberships(id) ON DELETE SET NULL,
+    CONSTRAINT fk_rotation_location FOREIGN KEY (location_id) REFERENCES locations(id),
+    CONSTRAINT fk_rotation_department FOREIGN KEY (department_id) REFERENCES departments(id),
+    CONSTRAINT fk_rotation_position FOREIGN KEY (position_id) REFERENCES positions(id),
+    CONSTRAINT fk_rotation_creator FOREIGN KEY (created_by) REFERENCES users(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS rotation_generated_shifts (
+    rotation_id BIGINT UNSIGNED NOT NULL,
+    shift_id BIGINT UNSIGNED NOT NULL,
+    PRIMARY KEY (rotation_id,shift_id),
+    UNIQUE KEY uq_rotation_shift (shift_id),
+    CONSTRAINT fk_rgs_rotation FOREIGN KEY (rotation_id) REFERENCES rotations(id) ON DELETE CASCADE,
+    CONSTRAINT fk_rgs_shift FOREIGN KEY (shift_id) REFERENCES shifts(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
