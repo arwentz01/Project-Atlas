@@ -29,6 +29,9 @@ This checkpoint connects Atlas's multi-tenant organization foundation while pres
 - Recurring one- to four-week rotations and shift generation
 - Self-scheduling request review and approval
 - Employee My Schedule workspace
+- Recurring availability and date-specific exceptions
+- Preferred hours, locations, departments, opening, and closing patterns
+- Availability approval workflow and shift-eligibility integration
 - Responsive staff and manager navigation
 - PHI-free demo fixtures
 
