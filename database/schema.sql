@@ -414,3 +414,42 @@ CREATE TABLE IF NOT EXISTS rotation_generated_shifts (
     CONSTRAINT fk_rgs_rotation FOREIGN KEY (rotation_id) REFERENCES rotations(id) ON DELETE CASCADE,
     CONSTRAINT fk_rgs_shift FOREIGN KEY (shift_id) REFERENCES shifts(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS workforce_preferences (
+    membership_id BIGINT UNSIGNED PRIMARY KEY,
+    organization_id BIGINT UNSIGNED NOT NULL,
+    preferred_start TIME NULL,
+    preferred_end TIME NULL,
+    maximum_weekly_hours DECIMAL(5,2) NULL,
+    preferred_location_id BIGINT UNSIGNED NULL,
+    preferred_department_id BIGINT UNSIGNED NULL,
+    opening_preference ENUM('prefer','available','avoid') NOT NULL DEFAULT 'available',
+    closing_preference ENUM('prefer','available','avoid') NOT NULL DEFAULT 'available',
+    notes VARCHAR(500) NULL,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT fk_pref_member FOREIGN KEY (membership_id) REFERENCES memberships(id) ON DELETE CASCADE,
+    CONSTRAINT fk_pref_org FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE,
+    CONSTRAINT fk_pref_location FOREIGN KEY (preferred_location_id) REFERENCES locations(id) ON DELETE SET NULL,
+    CONSTRAINT fk_pref_department FOREIGN KEY (preferred_department_id) REFERENCES departments(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS availability_entries (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    organization_id BIGINT UNSIGNED NOT NULL,
+    membership_id BIGINT UNSIGNED NOT NULL,
+    entry_type ENUM('recurring','date_exception') NOT NULL,
+    weekday TINYINT UNSIGNED NULL,
+    applies_on DATE NULL,
+    availability ENUM('available','preferred','unavailable') NOT NULL,
+    starts_at TIME NULL,
+    ends_at TIME NULL,
+    status ENUM('pending','approved','denied') NOT NULL DEFAULT 'approved',
+    reviewed_by BIGINT UNSIGNED NULL,
+    reviewed_at TIMESTAMP NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    KEY idx_availability_member (membership_id,status),
+    KEY idx_availability_date (organization_id,applies_on),
+    CONSTRAINT fk_availability_org FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE,
+    CONSTRAINT fk_availability_member FOREIGN KEY (membership_id) REFERENCES memberships(id) ON DELETE CASCADE,
+    CONSTRAINT fk_availability_reviewer FOREIGN KEY (reviewed_by) REFERENCES users(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
