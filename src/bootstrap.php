@@ -3,6 +3,8 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/Config.php';
+require_once __DIR__ . '/Routing.php';
+require_once __DIR__ . '/SystemStatus.php';
 require_once __DIR__ . '/Database.php';
 require_once __DIR__ . '/Csrf.php';
 require_once __DIR__ . '/Auth.php';
