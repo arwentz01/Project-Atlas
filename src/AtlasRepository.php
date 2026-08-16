@@ -53,10 +53,16 @@ final class AtlasRepository
             $statement = $this->db->prepare("SELECT * FROM {$table} WHERE organization_id = ? AND active = 1 ORDER BY name");
             $statement->execute([$organizationId]);
             $result[$table] = $statement->fetchAll();
+            $statement = $this->db->prepare("SELECT * FROM {$table} WHERE organization_id = ? ORDER BY active DESC, name");
+            $statement->execute([$organizationId]);
+            $result['all_' . $table] = $statement->fetchAll();
         }
         $statement = $this->db->prepare('SELECT m.id AS membership_id, m.role, u.id, u.name, u.email, d.name AS department_name, p.name AS position_name, sg.name AS supervisor_group_name FROM memberships m JOIN users u ON u.id = m.user_id LEFT JOIN staff_assignments sa ON sa.membership_id = m.id AND sa.is_primary = 1 LEFT JOIN departments d ON d.id = sa.department_id LEFT JOIN positions p ON p.id = sa.position_id LEFT JOIN supervisor_groups sg ON sg.id = sa.supervisor_group_id WHERE m.organization_id = ? AND m.status = "active" ORDER BY u.name');
         $statement->execute([$organizationId]);
         $result['people'] = $statement->fetchAll();
+        $statement = $this->db->prepare('SELECT m.id AS membership_id,m.role,m.status,u.name,u.email FROM memberships m JOIN users u ON u.id=m.user_id WHERE m.organization_id=? ORDER BY m.status,u.name');
+        $statement->execute([$organizationId]);
+        $result['all_people'] = $statement->fetchAll();
         $statement = $this->db->prepare('SELECT i.*, d.name AS department_name, p.name AS position_name FROM invitations i LEFT JOIN departments d ON d.id = i.department_id LEFT JOIN positions p ON p.id = i.position_id WHERE i.organization_id = ? AND i.accepted_at IS NULL AND i.expires_at > NOW() ORDER BY i.created_at DESC');
         $statement->execute([$organizationId]);
         $result['invitations'] = $statement->fetchAll();
@@ -169,6 +175,21 @@ final class AtlasRepository
             $this->db->rollBack();
             throw $exception;
         }
+    }
+
+    public function manageStructure(int $organizationId,int $userId,string $type,int $id,string $name,bool $active): void
+    {
+        $tables=['location'=>'locations','department'=>'departments','position'=>'positions','supervisor_group'=>'supervisor_groups'];if(!isset($tables[$type]))throw new InvalidArgumentException('Unknown organization resource.');$name=trim($name);if($name==='')throw new InvalidArgumentException('A name is required.');$table=$tables[$type];$q=$this->db->prepare("UPDATE {$table} SET name=?,active=? WHERE id=? AND organization_id=?");$q->execute([$name,$active?1:0,$id,$organizationId]);if(!$q->rowCount())throw new InvalidArgumentException('Organization resource unavailable or unchanged.');$this->audit($organizationId,$userId,$type.'.updated',$type,$id,['name'=>$name,'active'=>$active]);
+    }
+
+    public function setMembershipStatus(int $organizationId,int $userId,int $membershipId,string $status): void
+    {
+        if(!in_array($status,['active','inactive'],true))throw new InvalidArgumentException('Invalid membership status.');$q=$this->db->prepare('SELECT role,user_id FROM memberships WHERE id=? AND organization_id=?');$q->execute([$membershipId,$organizationId]);$m=$q->fetch();if(!$m)throw new InvalidArgumentException('Team member unavailable.');if($m['role']==='owner'&&$status==='inactive')throw new InvalidArgumentException('The organization owner cannot be deactivated.');$this->db->prepare('UPDATE memberships SET status=? WHERE id=? AND organization_id=?')->execute([$status,$membershipId,$organizationId]);$this->audit($organizationId,$userId,'membership.'.$status,'membership',$membershipId,[]);
+    }
+
+    public function cancelInvitation(int $organizationId,int $userId,int $invitationId): void
+    {
+        $q=$this->db->prepare('UPDATE invitations SET expires_at=NOW() WHERE id=? AND organization_id=? AND accepted_at IS NULL');$q->execute([$invitationId,$organizationId]);if(!$q->rowCount())throw new InvalidArgumentException('Pending invitation unavailable.');$this->audit($organizationId,$userId,'invitation.cancelled','invitation',$invitationId,[]);
     }
 
     private function insertNamed(string $table, int $organizationId, string $name, array $extra): void
