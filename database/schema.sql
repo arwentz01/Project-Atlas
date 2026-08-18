@@ -813,3 +813,51 @@ CREATE TABLE IF NOT EXISTS master_schedule_generation_items (
     CONSTRAINT fk_master_item_entry FOREIGN KEY (master_entry_id) REFERENCES master_schedule_entries(id),
     CONSTRAINT fk_master_item_shift FOREIGN KEY (shift_id) REFERENCES shifts(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS master_schedule_versions (
+    master_schedule_id BIGINT UNSIGNED PRIMARY KEY,
+    source_master_schedule_id BIGINT UNSIGNED NULL,
+    version_number INT UNSIGNED NOT NULL DEFAULT 1,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_master_version_schedule FOREIGN KEY (master_schedule_id) REFERENCES master_schedules(id) ON DELETE CASCADE,
+    CONSTRAINT fk_master_version_source FOREIGN KEY (source_master_schedule_id) REFERENCES master_schedules(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS schedule_exceptions (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    organization_id BIGINT UNSIGNED NOT NULL,
+    exception_date DATE NOT NULL,
+    name VARCHAR(140) NOT NULL,
+    exception_type ENUM('closed','special_hours','alternate_master') NOT NULL DEFAULT 'closed',
+    starts_at TIME NULL,
+    ends_at TIME NULL,
+    alternate_master_schedule_id BIGINT UNSIGNED NULL,
+    notes VARCHAR(500) NULL,
+    created_by BIGINT UNSIGNED NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uq_schedule_exception (organization_id,exception_date),
+    CONSTRAINT fk_schedule_exception_org FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE,
+    CONSTRAINT fk_schedule_exception_master FOREIGN KEY (alternate_master_schedule_id) REFERENCES master_schedules(id) ON DELETE SET NULL,
+    CONSTRAINT fk_schedule_exception_user FOREIGN KEY (created_by) REFERENCES users(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS master_generation_resolutions (
+    generation_item_id BIGINT UNSIGNED PRIMARY KEY,
+    resolution ENUM('reassigned','override','left_open','dismissed') NOT NULL,
+    membership_id BIGINT UNSIGNED NULL,
+    notes VARCHAR(500) NULL,
+    resolved_by BIGINT UNSIGNED NOT NULL,
+    resolved_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_master_resolution_item FOREIGN KEY (generation_item_id) REFERENCES master_schedule_generation_items(id) ON DELETE CASCADE,
+    CONSTRAINT fk_master_resolution_member FOREIGN KEY (membership_id) REFERENCES memberships(id) ON DELETE SET NULL,
+    CONSTRAINT fk_master_resolution_user FOREIGN KEY (resolved_by) REFERENCES users(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS master_generation_publications (
+    generation_id BIGINT UNSIGNED PRIMARY KEY,
+    status ENUM('draft','published') NOT NULL DEFAULT 'draft',
+    published_by BIGINT UNSIGNED NULL,
+    published_at TIMESTAMP NULL,
+    CONSTRAINT fk_master_publication_generation FOREIGN KEY (generation_id) REFERENCES master_schedule_generations(id) ON DELETE CASCADE,
+    CONSTRAINT fk_master_publication_user FOREIGN KEY (published_by) REFERENCES users(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
