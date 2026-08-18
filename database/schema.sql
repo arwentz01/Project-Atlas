@@ -697,3 +697,24 @@ CREATE TABLE IF NOT EXISTS member_credentials (
     CONSTRAINT fk_member_credential_type FOREIGN KEY (credential_type_id) REFERENCES credential_types(id) ON DELETE CASCADE,
     CONSTRAINT fk_member_credential_verifier FOREIGN KEY (verified_by) REFERENCES users(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS time_entries (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    organization_id BIGINT UNSIGNED NOT NULL,
+    membership_id BIGINT UNSIGNED NOT NULL,
+    shift_id BIGINT UNSIGNED NULL,
+    clocked_in_at DATETIME NOT NULL,
+    clocked_out_at DATETIME NULL,
+    break_minutes SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+    status ENUM('open','submitted','approved','rejected') NOT NULL DEFAULT 'open',
+    employee_note VARCHAR(500) NULL,
+    manager_note VARCHAR(500) NULL,
+    reviewed_by BIGINT UNSIGNED NULL,
+    reviewed_at TIMESTAMP NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    KEY idx_time_entry_member (membership_id,clocked_in_at),
+    CONSTRAINT fk_time_entry_org FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE,
+    CONSTRAINT fk_time_entry_member FOREIGN KEY (membership_id) REFERENCES memberships(id) ON DELETE CASCADE,
+    CONSTRAINT fk_time_entry_shift FOREIGN KEY (shift_id) REFERENCES shifts(id) ON DELETE SET NULL,
+    CONSTRAINT fk_time_entry_reviewer FOREIGN KEY (reviewed_by) REFERENCES users(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
