@@ -42,6 +42,7 @@ This checkpoint connects Atlas's multi-tenant organization foundation while pres
 - Recurring provider, station, and work-function coverage requirements with priority-aware daily gap detection
 - Reusable shift templates that generate open or eligibility-checked assigned shifts alongside recurring rotations
 - Explainable fairness metrics for hours, openings, closings, weekends, target variance, and eligibility-aware candidate guidance
+- Date-range operational reports, workforce-hour exports, request/callout summaries, coverage indicators, and administrator audit history
 - Recipient acceptance, manager approval, withdrawal, and expiration
 - Swap-aware eligibility, overlap, availability, and qualification checks
 - Responsive staff and manager navigation
