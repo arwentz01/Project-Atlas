@@ -18,6 +18,7 @@ final class SystemStatus
         'coverage_requirements',
         'shift_templates',
         'credential_types','member_credentials',
+        'time_entries',
     ];
 
     public static function missingTables(PDO $db): array
