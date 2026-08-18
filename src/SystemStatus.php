@@ -16,6 +16,7 @@ final class SystemStatus
         'callouts','callout_offers',
         'message_threads','message_thread_members','messages','notifications',
         'coverage_requirements',
+        'shift_templates',
     ];
 
     public static function missingTables(PDO $db): array
