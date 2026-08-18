@@ -344,6 +344,16 @@ final class SchedulingRepository
         $metrics=$this->fairnessMetrics($oid,$from,$through);$out=[];foreach($metrics as $row){$elig=$this->eligibility($oid,(int)$row['membership_id'],$shiftId);if($elig['result']==='ineligible')continue;$row['eligibility']=$elig['result'];$row['eligibility_reasons']=$elig['reasons'];$row['guidance_score']=round((float)$row['scheduled_hours']+((int)$row['burden_score']*2)+($elig['result']==='approval'?10:0),2);$out[]=$row;}usort($out,fn($a,$b)=>$a['guidance_score']<=>$b['guidance_score']);return $out;
     }
 
+    public function reportSummary(int $oid,string $from,string $through): array
+    {
+        if(!$from||!$through||$through<$from)throw new InvalidArgumentException('Choose a valid report period.');$q=$this->db->prepare('SELECT COUNT(*) shifts,COALESCE(SUM(TIME_TO_SEC(TIMEDIFF(ends_at,starts_at))/3600),0) scheduled_hours,SUM(status="open") open_shifts,SUM(status="cancelled") cancelled_shifts FROM shifts WHERE organization_id=? AND shift_date BETWEEN ? AND ?');$q->execute([$oid,$from,$through]);$summary=$q->fetch();$q=$this->db->prepare('SELECT COUNT(*) total,SUM(status="approved") approved,SUM(status="denied") denied,SUM(status="pending") pending FROM time_off_requests WHERE organization_id=? AND starts_on<=? AND ends_on>=?');$q->execute([$oid,$through,$from]);$summary['time_off']=$q->fetch();$q=$this->db->prepare('SELECT COUNT(*) total,SUM(status="covered") covered,SUM(status="replacement_open") open FROM callouts c JOIN shifts s ON s.id=c.shift_id WHERE c.organization_id=? AND s.shift_date BETWEEN ? AND ?');$q->execute([$oid,$from,$through]);$summary['callouts']=$q->fetch();$q=$this->db->prepare('SELECT COALESCE(SUM(required_count),0) required,COALESCE(SUM((SELECT COUNT(*) FROM coverage_assignments ca JOIN shifts s ON s.id=ca.shift_id WHERE ca.organization_id=cr.organization_id AND s.shift_date BETWEEN ? AND ? AND (cr.provider_id IS NULL OR ca.provider_id=cr.provider_id) AND (cr.station_id IS NULL OR ca.station_id=cr.station_id) AND (cr.work_function_id IS NULL OR ca.work_function_id=cr.work_function_id))),0) assigned FROM coverage_requirements cr WHERE cr.organization_id=? AND cr.active=1');$q->execute([$from,$through,$oid]);$summary['coverage']=$q->fetch();return $summary;
+    }
+
+    public function auditTrail(int $oid,int $limit=100): array
+    {
+        $limit=max(1,min(500,$limit));$q=$this->db->prepare('SELECT al.*,u.name user_name FROM audit_logs al LEFT JOIN users u ON u.id=al.user_id WHERE al.organization_id=? ORDER BY al.created_at DESC LIMIT '.$limit);$q->execute([$oid]);return $q->fetchAll();
+    }
+
     private function userForMembership(int $oid,int $memberId): int{$q=$this->db->prepare('SELECT user_id FROM memberships WHERE id=? AND organization_id=?');$q->execute([$memberId,$oid]);return (int)$q->fetchColumn();}
 
     private function membership(int $organizationId,mixed $id): int{$q=$this->db->prepare('SELECT id FROM memberships WHERE id=? AND organization_id=? AND status="active"');$q->execute([(int)$id,$organizationId]);$found=$q->fetchColumn();if(!$found)throw new InvalidArgumentException('Staff member unavailable.');return (int)$found;}
