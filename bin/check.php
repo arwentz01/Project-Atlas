@@ -28,6 +28,10 @@ try {
         $failures[] = 'Database migration';
     } else {
         fwrite(STDOUT, "[PASS] Database migration\n");
+        $organizationCount = (int)$db->query('SELECT COUNT(*) FROM organizations')->fetchColumn();
+        if ($organizationCount > 0) {
+            fwrite(STDOUT, "[INFO] Run bin/audit.php for repository query checks.\n");
+        }
     }
 } catch (Throwable $exception) {
     fwrite(STDOUT, '[FAIL] Database connection: ' . $exception->getMessage() . "\n");
