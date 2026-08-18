@@ -4,7 +4,23 @@ const toast = document.getElementById('toast');
 const orgSwitcher = document.getElementById('orgSwitcher');
 const orgDropdown = document.getElementById('orgDropdown');
 
-menuButton?.addEventListener('click', () => sidebar?.classList.toggle('open'));
+const closeNavigation = () => {
+  sidebar?.classList.remove('open');
+  document.body.classList.remove('nav-open');
+};
+
+menuButton?.addEventListener('click', () => {
+  const opening = !sidebar?.classList.contains('open');
+  sidebar?.classList.toggle('open', opening);
+  document.body.classList.toggle('nav-open', opening);
+});
+
+sidebar?.querySelectorAll('.nav-link').forEach((link) => link.addEventListener('click', closeNavigation));
+document.addEventListener('keydown', (event) => { if (event.key === 'Escape') closeNavigation(); });
+document.addEventListener('click', (event) => {
+  if (window.innerWidth > 860 || !document.body.classList.contains('nav-open')) return;
+  if (!sidebar?.contains(event.target) && !menuButton?.contains(event.target)) closeNavigation();
+});
 
 document.addEventListener('click', (event) => {
   const trigger = event.target.closest('[data-toast]');
