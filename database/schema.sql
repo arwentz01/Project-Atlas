@@ -530,3 +530,40 @@ CREATE TABLE IF NOT EXISTS shift_relief_assignments (
     CONSTRAINT fk_relief_request FOREIGN KEY (source_request_id) REFERENCES shift_change_requests(id) ON DELETE SET NULL,
     CONSTRAINT fk_relief_creator FOREIGN KEY (created_by) REFERENCES users(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS callouts (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    organization_id BIGINT UNSIGNED NOT NULL,
+    shift_id BIGINT UNSIGNED NOT NULL,
+    membership_id BIGINT UNSIGNED NOT NULL,
+    reason_category ENUM('illness','family_emergency','transportation','weather','other') NOT NULL DEFAULT 'illness',
+    employee_note VARCHAR(500) NULL,
+    manager_note VARCHAR(500) NULL,
+    status ENUM('reported','replacement_open','covered','closed','cancelled') NOT NULL DEFAULT 'reported',
+    replacement_membership_id BIGINT UNSIGNED NULL,
+    reported_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    acknowledged_by BIGINT UNSIGNED NULL,
+    acknowledged_at TIMESTAMP NULL,
+    resolved_at TIMESTAMP NULL,
+    UNIQUE KEY uq_callout_shift (shift_id),
+    KEY idx_callout_org_status (organization_id,status,reported_at),
+    CONSTRAINT fk_callout_org FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE,
+    CONSTRAINT fk_callout_shift FOREIGN KEY (shift_id) REFERENCES shifts(id) ON DELETE CASCADE,
+    CONSTRAINT fk_callout_member FOREIGN KEY (membership_id) REFERENCES memberships(id) ON DELETE CASCADE,
+    CONSTRAINT fk_callout_replacement FOREIGN KEY (replacement_membership_id) REFERENCES memberships(id) ON DELETE SET NULL,
+    CONSTRAINT fk_callout_ack FOREIGN KEY (acknowledged_by) REFERENCES users(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS callout_offers (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    callout_id BIGINT UNSIGNED NOT NULL,
+    membership_id BIGINT UNSIGNED NOT NULL,
+    eligibility_result ENUM('eligible','approval','ineligible') NOT NULL,
+    eligibility_reasons JSON NULL,
+    status ENUM('offered','accepted','declined','expired','selected') NOT NULL DEFAULT 'offered',
+    responded_at TIMESTAMP NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uq_callout_offer (callout_id,membership_id),
+    CONSTRAINT fk_callout_offer_callout FOREIGN KEY (callout_id) REFERENCES callouts(id) ON DELETE CASCADE,
+    CONSTRAINT fk_callout_offer_member FOREIGN KEY (membership_id) REFERENCES memberships(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
