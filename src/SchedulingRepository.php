@@ -249,6 +249,36 @@ final class SchedulingRepository
         $member=$this->membership($oid,$memberId);$q=$this->db->prepare('UPDATE shift_change_requests SET status="withdrawn" WHERE id=? AND organization_id=? AND requester_membership_id=? AND status IN ("pending_recipient","pending_manager")');$q->execute([$requestId,$oid,$member]);if(!$q->rowCount())throw new InvalidArgumentException('Shift request cannot be withdrawn.');
     }
 
+    public function reportCallout(int $oid,int $memberId,array $in): void
+    {
+        $member=$this->membership($oid,$memberId);$shift=$this->owned('shifts',$oid,$in['shift_id']??null,true);$q=$this->db->prepare('SELECT COUNT(*) FROM shifts WHERE id=? AND organization_id=? AND assigned_membership_id=? AND status IN ("assigned","filled")');$q->execute([$shift,$oid,$member]);if(!$q->fetchColumn())throw new InvalidArgumentException('You can only call out from one of your assigned shifts.');$category=in_array($in['reason_category']??'', ['illness','family_emergency','transportation','weather','other'],true)?$in['reason_category']:'other';$q=$this->db->prepare('INSERT INTO callouts (organization_id,shift_id,membership_id,reason_category,employee_note,status) VALUES (?,?,?,?,?,"replacement_open")');$q->execute([$oid,$shift,$member,$category,trim((string)($in['employee_note']??''))?:null]);$this->db->prepare('UPDATE shifts SET assigned_membership_id=NULL,status="open" WHERE id=? AND organization_id=?')->execute([$shift,$oid]);
+    }
+
+    public function callouts(int $oid,?int $memberId=null): array
+    {
+        $sql='SELECT c.*,s.shift_date,s.starts_at,s.ends_at,d.name department_name,u.name staff_name,ru.name replacement_name FROM callouts c JOIN shifts s ON s.id=c.shift_id JOIN departments d ON d.id=s.department_id JOIN memberships m ON m.id=c.membership_id JOIN users u ON u.id=m.user_id LEFT JOIN memberships rm ON rm.id=c.replacement_membership_id LEFT JOIN users ru ON ru.id=rm.user_id WHERE c.organization_id=?';$args=[$oid];if($memberId){$sql.=' AND (c.membership_id=? OR c.replacement_membership_id=?)';$args[]=$memberId;$args[]=$memberId;}$sql.=' ORDER BY FIELD(c.status,"replacement_open","reported","covered","closed","cancelled"),s.shift_date,s.starts_at';$q=$this->db->prepare($sql);$q->execute($args);return $q->fetchAll();
+    }
+
+    public function offerCallout(int $oid,int $uid,int $calloutId,int $memberId): void
+    {
+        $member=$this->membership($oid,$memberId);$q=$this->db->prepare('SELECT shift_id FROM callouts WHERE id=? AND organization_id=? AND status="replacement_open"');$q->execute([$calloutId,$oid]);$shift=(int)$q->fetchColumn();if(!$shift)throw new InvalidArgumentException('Callout is no longer open.');$elig=$this->eligibility($oid,$member,$shift);if($elig['result']==='ineligible')throw new InvalidArgumentException(implode(' ',$elig['reasons']));$q=$this->db->prepare('INSERT INTO callout_offers (callout_id,membership_id,eligibility_result,eligibility_reasons) VALUES (?,?,?,?) ON DUPLICATE KEY UPDATE status="offered",eligibility_result=VALUES(eligibility_result),eligibility_reasons=VALUES(eligibility_reasons)');$q->execute([$calloutId,$member,$elig['result'],json_encode($elig['reasons'])]);$this->audit($oid,$uid,'callout.offer',(string)$calloutId);
+    }
+
+    public function respondCalloutOffer(int $oid,int $memberId,int $calloutId,string $response): void
+    {
+        if(!in_array($response,['accepted','declined'],true))throw new InvalidArgumentException('Invalid response.');$member=$this->membership($oid,$memberId);$q=$this->db->prepare('UPDATE callout_offers co JOIN callouts c ON c.id=co.callout_id SET co.status=?,co.responded_at=NOW() WHERE co.callout_id=? AND co.membership_id=? AND c.organization_id=? AND c.status="replacement_open" AND co.status="offered"');$q->execute([$response,$calloutId,$member,$oid]);if(!$q->rowCount())throw new InvalidArgumentException('Coverage offer is unavailable.');
+    }
+
+    public function selectCalloutReplacement(int $oid,int $uid,int $calloutId,int $memberId,string $note=''): void
+    {
+        $member=$this->membership($oid,$memberId);$q=$this->db->prepare('SELECT c.shift_id FROM callouts c JOIN callout_offers co ON co.callout_id=c.id AND co.membership_id=? AND co.status="accepted" WHERE c.id=? AND c.organization_id=? AND c.status="replacement_open"');$q->execute([$member,$calloutId,$oid]);$shift=(int)$q->fetchColumn();if(!$shift)throw new InvalidArgumentException('Select an employee who accepted this callout.');$this->db->beginTransaction();try{$this->db->prepare('UPDATE shifts SET assigned_membership_id=?,status="assigned" WHERE id=? AND organization_id=?')->execute([$member,$shift,$oid]);$this->db->prepare('UPDATE callouts SET replacement_membership_id=?,status="covered",manager_note=?,acknowledged_by=?,acknowledged_at=NOW(),resolved_at=NOW() WHERE id=?')->execute([$member,trim($note)?:null,$uid,$calloutId]);$this->db->prepare('UPDATE callout_offers SET status=IF(membership_id=?,"selected",IF(status="accepted","expired",status)) WHERE callout_id=?')->execute([$member,$calloutId]);$this->db->commit();}catch(Throwable $e){$this->db->rollBack();throw $e;}$this->audit($oid,$uid,'callout.covered',(string)$calloutId);
+    }
+
+    public function calloutOffers(int $oid,?int $memberId=null): array
+    {
+        $sql='SELECT co.*,c.shift_id,s.shift_date,s.starts_at,s.ends_at,d.name department_name,u.name staff_name FROM callout_offers co JOIN callouts c ON c.id=co.callout_id JOIN shifts s ON s.id=c.shift_id JOIN departments d ON d.id=s.department_id JOIN memberships m ON m.id=co.membership_id JOIN users u ON u.id=m.user_id WHERE c.organization_id=?';$args=[$oid];if($memberId){$sql.=' AND co.membership_id=?';$args[]=$memberId;}$sql.=' ORDER BY co.created_at DESC';$q=$this->db->prepare($sql);$q->execute($args);return $q->fetchAll();
+    }
+
     private function membership(int $organizationId,mixed $id): int{$q=$this->db->prepare('SELECT id FROM memberships WHERE id=? AND organization_id=? AND status="active"');$q->execute([(int)$id,$organizationId]);$found=$q->fetchColumn();if(!$found)throw new InvalidArgumentException('Staff member unavailable.');return (int)$found;}
     private function owned(string $table,int $organizationId,mixed $id,bool $required=false): ?int{if(!$id){if($required)throw new InvalidArgumentException('A required organization resource is missing.');return null;}$allowed=['locations','departments','positions','providers','stations','work_functions','qualifications','eligibility_groups','shifts'];if(!in_array($table,$allowed,true))throw new LogicException('Invalid resource type.');$q=$this->db->prepare("SELECT id FROM {$table} WHERE id=? AND organization_id=?".($table!=='shifts'?' AND active=1':''));$q->execute([(int)$id,$organizationId]);$found=$q->fetchColumn();if(!$found)throw new InvalidArgumentException('A selected organization resource is unavailable.');return (int)$found;}
     private function audit(int $oid,int $uid,string $action,string $value):void{$q=$this->db->prepare('INSERT INTO audit_logs (organization_id,user_id,action,entity_type,metadata_json,ip_address) VALUES (?, ?, ?, "scheduling", ?, ?)');$q->execute([$oid,$uid,$action,json_encode(['value'=>$value]),$_SERVER['REMOTE_ADDR']??null]);}
