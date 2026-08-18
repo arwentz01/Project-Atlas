@@ -39,6 +39,7 @@ This checkpoint connects Atlas's multi-tenant organization foundation while pres
 - Partial-shift relief assignments
 - Same-day callouts with urgent replacement offers, eligibility checks, acceptance tracking, and audited reassignment
 - Direct and group workforce messaging with unread state and an in-app notification inbox
+- Deduplicated automatic alerts for callouts, pending approvals, submitted timesheets, and expiring credentials
 - Recurring provider, station, and work-function coverage requirements with priority-aware daily gap detection
 - Reusable shift templates that generate open or eligibility-checked assigned shifts alongside recurring rotations
 - Explainable fairness metrics for hours, openings, closings, weekends, target variance, and eligibility-aware candidate guidance
