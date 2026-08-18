@@ -664,3 +664,36 @@ CREATE TABLE IF NOT EXISTS shift_templates (
     CONSTRAINT fk_template_position FOREIGN KEY (position_id) REFERENCES positions(id),
     CONSTRAINT fk_template_creator FOREIGN KEY (created_by) REFERENCES users(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS credential_types (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    organization_id BIGINT UNSIGNED NOT NULL,
+    name VARCHAR(140) NOT NULL,
+    issuing_authority VARCHAR(180) NULL,
+    renewal_days SMALLINT UNSIGNED NULL,
+    warning_days SMALLINT UNSIGNED NOT NULL DEFAULT 60,
+    active TINYINT(1) NOT NULL DEFAULT 1,
+    UNIQUE KEY uq_credential_type (organization_id,name),
+    CONSTRAINT fk_credential_type_org FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS member_credentials (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    organization_id BIGINT UNSIGNED NOT NULL,
+    membership_id BIGINT UNSIGNED NOT NULL,
+    credential_type_id BIGINT UNSIGNED NOT NULL,
+    credential_number VARCHAR(120) NULL,
+    issued_on DATE NULL,
+    expires_on DATE NULL,
+    status ENUM('pending','verified','rejected','expired') NOT NULL DEFAULT 'pending',
+    verified_by BIGINT UNSIGNED NULL,
+    verified_at TIMESTAMP NULL,
+    notes VARCHAR(500) NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uq_member_credential (membership_id,credential_type_id,credential_number),
+    KEY idx_credentials_expiry (organization_id,status,expires_on),
+    CONSTRAINT fk_member_credential_org FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE,
+    CONSTRAINT fk_member_credential_member FOREIGN KEY (membership_id) REFERENCES memberships(id) ON DELETE CASCADE,
+    CONSTRAINT fk_member_credential_type FOREIGN KEY (credential_type_id) REFERENCES credential_types(id) ON DELETE CASCADE,
+    CONSTRAINT fk_member_credential_verifier FOREIGN KEY (verified_by) REFERENCES users(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
