@@ -69,6 +69,9 @@ $readChecks = [
     'Credentials' => fn() => $scheduling->credentials($organizationId),
     'Time entries' => fn() => $scheduling->timeEntries($organizationId),
     'Payroll preview' => fn() => $scheduling->payrollPreview($organizationId, $monthStart, $monthEnd),
+    'Master schedules' => fn() => $scheduling->masterSchedules($organizationId),
+    'Master schedule entries' => fn() => $scheduling->masterScheduleEntries($organizationId),
+    'Master schedule generations' => fn() => $scheduling->masterScheduleGenerations($organizationId),
 ];
 
 $db->beginTransaction();
