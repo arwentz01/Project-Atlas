@@ -20,6 +20,7 @@ final class SystemStatus
         'credential_types','member_credentials',
         'time_entries',
         'pay_profiles','payroll_exports',
+        'master_schedules','master_schedule_entries','master_schedule_generations','master_schedule_generation_items',
     ];
 
     public static function missingTables(PDO $db): array
