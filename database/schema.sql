@@ -485,3 +485,48 @@ CREATE TABLE IF NOT EXISTS time_off_requests (
     CONSTRAINT fk_time_off_type FOREIGN KEY (request_type_id) REFERENCES request_types(id) ON DELETE SET NULL,
     CONSTRAINT fk_time_off_reviewer FOREIGN KEY (reviewed_by) REFERENCES users(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS shift_change_requests (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    organization_id BIGINT UNSIGNED NOT NULL,
+    requester_membership_id BIGINT UNSIGNED NOT NULL,
+    offered_shift_id BIGINT UNSIGNED NOT NULL,
+    recipient_membership_id BIGINT UNSIGNED NULL,
+    requested_shift_id BIGINT UNSIGNED NULL,
+    request_type ENUM('giveaway','trade','partial') NOT NULL,
+    partial_starts_at TIME NULL,
+    partial_ends_at TIME NULL,
+    employee_note VARCHAR(500) NULL,
+    manager_note VARCHAR(500) NULL,
+    status ENUM('pending_recipient','pending_manager','approved','denied','withdrawn','expired') NOT NULL DEFAULT 'pending_recipient',
+    eligibility_result ENUM('eligible','approval','ineligible') NULL,
+    eligibility_reasons JSON NULL,
+    reviewed_by BIGINT UNSIGNED NULL,
+    reviewed_at TIMESTAMP NULL,
+    expires_at TIMESTAMP NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    KEY idx_change_org_status (organization_id,status),
+    CONSTRAINT fk_change_org FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE,
+    CONSTRAINT fk_change_requester FOREIGN KEY (requester_membership_id) REFERENCES memberships(id) ON DELETE CASCADE,
+    CONSTRAINT fk_change_offered_shift FOREIGN KEY (offered_shift_id) REFERENCES shifts(id) ON DELETE CASCADE,
+    CONSTRAINT fk_change_recipient FOREIGN KEY (recipient_membership_id) REFERENCES memberships(id) ON DELETE SET NULL,
+    CONSTRAINT fk_change_requested_shift FOREIGN KEY (requested_shift_id) REFERENCES shifts(id) ON DELETE SET NULL,
+    CONSTRAINT fk_change_reviewer FOREIGN KEY (reviewed_by) REFERENCES users(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS shift_relief_assignments (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    organization_id BIGINT UNSIGNED NOT NULL,
+    shift_id BIGINT UNSIGNED NOT NULL,
+    membership_id BIGINT UNSIGNED NOT NULL,
+    starts_at TIME NOT NULL,
+    ends_at TIME NOT NULL,
+    source_request_id BIGINT UNSIGNED NULL,
+    created_by BIGINT UNSIGNED NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_relief_org FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE,
+    CONSTRAINT fk_relief_shift FOREIGN KEY (shift_id) REFERENCES shifts(id) ON DELETE CASCADE,
+    CONSTRAINT fk_relief_member FOREIGN KEY (membership_id) REFERENCES memberships(id) ON DELETE CASCADE,
+    CONSTRAINT fk_relief_request FOREIGN KEY (source_request_id) REFERENCES shift_change_requests(id) ON DELETE SET NULL,
+    CONSTRAINT fk_relief_creator FOREIGN KEY (created_by) REFERENCES users(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
