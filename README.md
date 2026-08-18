@@ -35,6 +35,10 @@ This checkpoint connects Atlas's multi-tenant organization foundation while pres
 - Organization-defined paid and unpaid time-off categories
 - Full-day and partial-day time-off requests with conflict visibility
 - Time-off approval, denial, cancellation, and eligibility integration
+- Shift giveaways and direct employee trades
+- Partial-shift relief assignments
+- Recipient acceptance, manager approval, withdrawal, and expiration
+- Swap-aware eligibility, overlap, availability, and qualification checks
 - Responsive staff and manager navigation
 - PHI-free demo fixtures
 
