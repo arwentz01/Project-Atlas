@@ -45,6 +45,7 @@ This checkpoint connects Atlas's multi-tenant organization foundation while pres
 - Date-range operational reports, workforce-hour exports, request/callout summaries, coverage indicators, and administrator audit history
 - Credential catalog, employee credential records, verification state, expiration warnings, and compliance visibility
 - Employee clock-in/out, optional shift linkage, break capture, timesheet submission, and manager approval
+- Hourly and salary pay profiles, weekly overtime rules, approved-time payroll previews, gross estimates, and audited CSV exports
 - Recipient acceptance, manager approval, withdrawal, and expiration
 - Swap-aware eligibility, overlap, availability, and qualification checks
 - Responsive staff and manager navigation
