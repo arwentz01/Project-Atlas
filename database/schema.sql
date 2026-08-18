@@ -747,3 +747,69 @@ CREATE TABLE IF NOT EXISTS payroll_exports (
     CONSTRAINT fk_payroll_export_org FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE,
     CONSTRAINT fk_payroll_export_user FOREIGN KEY (exported_by) REFERENCES users(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS master_schedules (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    organization_id BIGINT UNSIGNED NOT NULL,
+    name VARCHAR(140) NOT NULL,
+    effective_from DATE NOT NULL,
+    effective_to DATE NULL,
+    active TINYINT(1) NOT NULL DEFAULT 1,
+    created_by BIGINT UNSIGNED NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    KEY idx_master_schedule_org (organization_id,active,effective_from),
+    CONSTRAINT fk_master_schedule_org FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE,
+    CONSTRAINT fk_master_schedule_creator FOREIGN KEY (created_by) REFERENCES users(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS master_schedule_entries (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    master_schedule_id BIGINT UNSIGNED NOT NULL,
+    organization_id BIGINT UNSIGNED NOT NULL,
+    membership_id BIGINT UNSIGNED NULL,
+    weekday TINYINT UNSIGNED NOT NULL,
+    location_id BIGINT UNSIGNED NOT NULL,
+    department_id BIGINT UNSIGNED NOT NULL,
+    position_id BIGINT UNSIGNED NOT NULL,
+    starts_at TIME NOT NULL,
+    ends_at TIME NOT NULL,
+    notes VARCHAR(500) NULL,
+    active TINYINT(1) NOT NULL DEFAULT 1,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    KEY idx_master_entry_pattern (master_schedule_id,weekday,starts_at),
+    CONSTRAINT fk_master_entry_master FOREIGN KEY (master_schedule_id) REFERENCES master_schedules(id) ON DELETE CASCADE,
+    CONSTRAINT fk_master_entry_org FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE,
+    CONSTRAINT fk_master_entry_member FOREIGN KEY (membership_id) REFERENCES memberships(id) ON DELETE SET NULL,
+    CONSTRAINT fk_master_entry_location FOREIGN KEY (location_id) REFERENCES locations(id),
+    CONSTRAINT fk_master_entry_department FOREIGN KEY (department_id) REFERENCES departments(id),
+    CONSTRAINT fk_master_entry_position FOREIGN KEY (position_id) REFERENCES positions(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS master_schedule_generations (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    master_schedule_id BIGINT UNSIGNED NOT NULL,
+    organization_id BIGINT UNSIGNED NOT NULL,
+    week_starts_on DATE NOT NULL,
+    shift_count INT UNSIGNED NOT NULL DEFAULT 0,
+    conflict_count INT UNSIGNED NOT NULL DEFAULT 0,
+    generated_by BIGINT UNSIGNED NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uq_master_generation_week (master_schedule_id,week_starts_on),
+    CONSTRAINT fk_master_generation_master FOREIGN KEY (master_schedule_id) REFERENCES master_schedules(id) ON DELETE CASCADE,
+    CONSTRAINT fk_master_generation_org FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE,
+    CONSTRAINT fk_master_generation_user FOREIGN KEY (generated_by) REFERENCES users(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS master_schedule_generation_items (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    generation_id BIGINT UNSIGNED NOT NULL,
+    master_entry_id BIGINT UNSIGNED NOT NULL,
+    shift_id BIGINT UNSIGNED NULL,
+    target_date DATE NOT NULL,
+    result ENUM('created','conflict','skipped') NOT NULL,
+    conflict_reasons JSON NULL,
+    CONSTRAINT fk_master_item_generation FOREIGN KEY (generation_id) REFERENCES master_schedule_generations(id) ON DELETE CASCADE,
+    CONSTRAINT fk_master_item_entry FOREIGN KEY (master_entry_id) REFERENCES master_schedule_entries(id),
+    CONSTRAINT fk_master_item_shift FOREIGN KEY (shift_id) REFERENCES shifts(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
