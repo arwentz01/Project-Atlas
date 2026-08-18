@@ -279,6 +279,38 @@ final class SchedulingRepository
         $sql='SELECT co.*,c.shift_id,s.shift_date,s.starts_at,s.ends_at,d.name department_name,u.name staff_name FROM callout_offers co JOIN callouts c ON c.id=co.callout_id JOIN shifts s ON s.id=c.shift_id JOIN departments d ON d.id=s.department_id JOIN memberships m ON m.id=co.membership_id JOIN users u ON u.id=m.user_id WHERE c.organization_id=?';$args=[$oid];if($memberId){$sql.=' AND co.membership_id=?';$args[]=$memberId;}$sql.=' ORDER BY co.created_at DESC';$q=$this->db->prepare($sql);$q->execute($args);return $q->fetchAll();
     }
 
+    public function createThread(int $oid,int $memberId,array $in): int
+    {
+        $sender=$this->membership($oid,$memberId);$subject=trim((string)($in['subject']??''));$body=trim((string)($in['body']??''));if($subject===''||$body==='')throw new InvalidArgumentException('Subject and message are required.');$recipients=array_values(array_unique(array_map('intval',(array)($in['membership_ids']??[]))));if(!$recipients)throw new InvalidArgumentException('Choose at least one recipient.');$this->db->beginTransaction();try{$q=$this->db->prepare('INSERT INTO message_threads (organization_id,subject,thread_type,created_by) VALUES (?,?,?,?)');$q->execute([$oid,$subject,count($recipients)>1?'group':'direct',$this->userForMembership($oid,$sender)]);$thread=(int)$this->db->lastInsertId();$add=$this->db->prepare('INSERT INTO message_thread_members (thread_id,membership_id,last_read_at) VALUES (?,?,?)');$add->execute([$thread,$sender,date('Y-m-d H:i:s')]);foreach($recipients as $recipient){$recipient=$this->membership($oid,$recipient);if($recipient===$sender)continue;$add->execute([$thread,$recipient,null]);$this->db->prepare('INSERT INTO notifications (organization_id,membership_id,notification_type,title,body,action_route) VALUES (?,?,' . "'message'" . ',?,?,"messages")')->execute([$oid,$recipient,'New message: '.$subject,mb_substr($body,0,500)]);}$this->db->prepare('INSERT INTO messages (thread_id,sender_membership_id,body) VALUES (?,?,?)')->execute([$thread,$sender,$body]);$this->db->commit();return $thread;}catch(Throwable $e){$this->db->rollBack();throw $e;}
+    }
+
+    public function sendMessage(int $oid,int $memberId,int $threadId,string $body): void
+    {
+        $member=$this->membership($oid,$memberId);$body=trim($body);if($body==='')throw new InvalidArgumentException('Message cannot be empty.');$q=$this->db->prepare('SELECT COUNT(*) FROM message_threads t JOIN message_thread_members tm ON tm.thread_id=t.id WHERE t.id=? AND t.organization_id=? AND tm.membership_id=?');$q->execute([$threadId,$oid,$member]);if(!$q->fetchColumn())throw new InvalidArgumentException('Conversation unavailable.');$this->db->prepare('INSERT INTO messages (thread_id,sender_membership_id,body) VALUES (?,?,?)')->execute([$threadId,$member,$body]);$this->db->prepare('UPDATE message_threads SET updated_at=NOW() WHERE id=?')->execute([$threadId]);$this->db->prepare('UPDATE message_thread_members SET last_read_at=NOW() WHERE thread_id=? AND membership_id=?')->execute([$threadId,$member]);$q=$this->db->prepare('SELECT membership_id FROM message_thread_members WHERE thread_id=? AND membership_id<>?');$q->execute([$threadId,$member]);foreach($q->fetchAll(PDO::FETCH_COLUMN) as $recipient)$this->db->prepare('INSERT INTO notifications (organization_id,membership_id,notification_type,title,body,action_route) SELECT ?,?,"message",subject,?,"messages" FROM message_threads WHERE id=?')->execute([$oid,$recipient,mb_substr($body,0,500),$threadId]);
+    }
+
+    public function threads(int $oid,int $memberId): array
+    {
+        $member=$this->membership($oid,$memberId);$q=$this->db->prepare('SELECT t.*,MAX(m.created_at) last_message_at,SUBSTRING_INDEX(GROUP_CONCAT(m.body ORDER BY m.created_at DESC SEPARATOR "||"),"||",1) preview,SUM(m.created_at>COALESCE(tm.last_read_at,"1970-01-01")) unread_count FROM message_threads t JOIN message_thread_members tm ON tm.thread_id=t.id AND tm.membership_id=? LEFT JOIN messages m ON m.thread_id=t.id WHERE t.organization_id=? GROUP BY t.id,tm.last_read_at ORDER BY COALESCE(MAX(m.created_at),t.created_at) DESC');$q->execute([$member,$oid]);return $q->fetchAll();
+    }
+
+    public function threadMessages(int $oid,int $memberId,?int $threadId): array
+    {
+        if(!$threadId)return [];$member=$this->membership($oid,$memberId);$q=$this->db->prepare('SELECT m.*,u.name sender_name FROM messages m JOIN message_threads t ON t.id=m.thread_id JOIN message_thread_members tm ON tm.thread_id=t.id AND tm.membership_id=? JOIN memberships sm ON sm.id=m.sender_membership_id JOIN users u ON u.id=sm.user_id WHERE t.id=? AND t.organization_id=? ORDER BY m.created_at');$q->execute([$member,$threadId,$oid]);$rows=$q->fetchAll();if($rows)$this->db->prepare('UPDATE message_thread_members SET last_read_at=NOW() WHERE thread_id=? AND membership_id=?')->execute([$threadId,$member]);return $rows;
+    }
+
+    public function notifications(int $oid,int $memberId): array
+    {
+        $member=$this->membership($oid,$memberId);$q=$this->db->prepare('SELECT * FROM notifications WHERE organization_id=? AND membership_id=? ORDER BY created_at DESC LIMIT 50');$q->execute([$oid,$member]);return $q->fetchAll();
+    }
+
+    public function markNotificationsRead(int $oid,int $memberId): void
+    {
+        $member=$this->membership($oid,$memberId);$this->db->prepare('UPDATE notifications SET read_at=NOW() WHERE organization_id=? AND membership_id=? AND read_at IS NULL')->execute([$oid,$member]);
+    }
+
+    private function userForMembership(int $oid,int $memberId): int{$q=$this->db->prepare('SELECT user_id FROM memberships WHERE id=? AND organization_id=?');$q->execute([$memberId,$oid]);return (int)$q->fetchColumn();}
+
     private function membership(int $organizationId,mixed $id): int{$q=$this->db->prepare('SELECT id FROM memberships WHERE id=? AND organization_id=? AND status="active"');$q->execute([(int)$id,$organizationId]);$found=$q->fetchColumn();if(!$found)throw new InvalidArgumentException('Staff member unavailable.');return (int)$found;}
     private function owned(string $table,int $organizationId,mixed $id,bool $required=false): ?int{if(!$id){if($required)throw new InvalidArgumentException('A required organization resource is missing.');return null;}$allowed=['locations','departments','positions','providers','stations','work_functions','qualifications','eligibility_groups','shifts'];if(!in_array($table,$allowed,true))throw new LogicException('Invalid resource type.');$q=$this->db->prepare("SELECT id FROM {$table} WHERE id=? AND organization_id=?".($table!=='shifts'?' AND active=1':''));$q->execute([(int)$id,$organizationId]);$found=$q->fetchColumn();if(!$found)throw new InvalidArgumentException('A selected organization resource is unavailable.');return (int)$found;}
     private function audit(int $oid,int $uid,string $action,string $value):void{$q=$this->db->prepare('INSERT INTO audit_logs (organization_id,user_id,action,entity_type,metadata_json,ip_address) VALUES (?, ?, ?, "scheduling", ?, ?)');$q->execute([$oid,$uid,$action,json_encode(['value'=>$value]),$_SERVER['REMOTE_ADDR']??null]);}
