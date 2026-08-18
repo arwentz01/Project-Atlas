@@ -617,3 +617,28 @@ CREATE TABLE IF NOT EXISTS notifications (
     CONSTRAINT fk_notification_org FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE,
     CONSTRAINT fk_notification_member FOREIGN KEY (membership_id) REFERENCES memberships(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS coverage_requirements (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    organization_id BIGINT UNSIGNED NOT NULL,
+    location_id BIGINT UNSIGNED NOT NULL,
+    department_id BIGINT UNSIGNED NOT NULL,
+    provider_id BIGINT UNSIGNED NULL,
+    station_id BIGINT UNSIGNED NULL,
+    work_function_id BIGINT UNSIGNED NULL,
+    weekday TINYINT UNSIGNED NOT NULL,
+    starts_at TIME NOT NULL,
+    ends_at TIME NOT NULL,
+    required_count SMALLINT UNSIGNED NOT NULL DEFAULT 1,
+    priority ENUM('standard','important','critical') NOT NULL DEFAULT 'standard',
+    active TINYINT(1) NOT NULL DEFAULT 1,
+    created_by BIGINT UNSIGNED NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_requirement_org FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE,
+    CONSTRAINT fk_requirement_location FOREIGN KEY (location_id) REFERENCES locations(id),
+    CONSTRAINT fk_requirement_department FOREIGN KEY (department_id) REFERENCES departments(id),
+    CONSTRAINT fk_requirement_provider FOREIGN KEY (provider_id) REFERENCES providers(id) ON DELETE SET NULL,
+    CONSTRAINT fk_requirement_station FOREIGN KEY (station_id) REFERENCES stations(id) ON DELETE SET NULL,
+    CONSTRAINT fk_requirement_function FOREIGN KEY (work_function_id) REFERENCES work_functions(id) ON DELETE SET NULL,
+    CONSTRAINT fk_requirement_creator FOREIGN KEY (created_by) REFERENCES users(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
