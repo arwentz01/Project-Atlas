@@ -4,6 +4,8 @@ Atlas Staffing is a visual-first ambulatory workforce scheduling platform for pr
 
 The Master Schedule module keeps normal recurring weekly assignments separate from live callouts, approved time off, trades, and one-time changes. Administrators can maintain named, effective-dated baselines and generate duplicate-protected live weeks. Conflicting assignments become open shifts for review while the baseline remains unchanged.
 
+Master Schedule also supports bulk weekday entry, assignment editing and archiving, versioned baseline copies, employee weekly-hour summaries, recurring coverage validation, holiday and special-hours rules, draft generation review, conflict resolution, week comparison, and employee publication. Master-generated assignments remain hidden from employee schedules until their generated week is published.
+
 This checkpoint connects Atlas's multi-tenant organization foundation while preserving the approved visual system.
 
 ## Included in this visual checkpoint
