@@ -12,6 +12,7 @@ final class SystemStatus
         'coverage_assignments','provider_sessions','rotations','rotation_generated_shifts',
         'workforce_preferences','availability_entries',
         'request_types','time_off_requests',
+        'shift_change_requests','shift_relief_assignments',
     ];
 
     public static function missingTables(PDO $db): array
