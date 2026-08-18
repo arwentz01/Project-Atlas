@@ -354,6 +354,26 @@ final class SchedulingRepository
         $limit=max(1,min(500,$limit));$q=$this->db->prepare('SELECT al.*,u.name user_name FROM audit_logs al LEFT JOIN users u ON u.id=al.user_id WHERE al.organization_id=? ORDER BY al.created_at DESC LIMIT '.$limit);$q->execute([$oid]);return $q->fetchAll();
     }
 
+    public function addCredentialType(int $oid,array $in): void
+    {
+        $name=trim((string)($in['name']??''));if($name==='')throw new InvalidArgumentException('Credential name is required.');$q=$this->db->prepare('INSERT INTO credential_types (organization_id,name,issuing_authority,renewal_days,warning_days) VALUES (?,?,?,?,?)');$q->execute([$oid,$name,trim((string)($in['issuing_authority']??''))?:null,!empty($in['renewal_days'])?(int)$in['renewal_days']:null,max(1,(int)($in['warning_days']??60))]);
+    }
+
+    public function addMemberCredential(int $oid,int $uid,array $in): void
+    {
+        $member=$this->membership($oid,$in['membership_id']??null);$type=(int)($in['credential_type_id']??0);$q=$this->db->prepare('SELECT COUNT(*) FROM credential_types WHERE id=? AND organization_id=? AND active=1');$q->execute([$type,$oid]);if(!$q->fetchColumn())throw new InvalidArgumentException('Credential type unavailable.');$status=!empty($in['verified'])?'verified':'pending';$q=$this->db->prepare('INSERT INTO member_credentials (organization_id,membership_id,credential_type_id,credential_number,issued_on,expires_on,status,verified_by,verified_at,notes) VALUES (?,?,?,?,?,?,?,?,?,?)');$q->execute([$oid,$member,$type,trim((string)($in['credential_number']??''))?:null,!empty($in['issued_on'])?$in['issued_on']:null,!empty($in['expires_on'])?$in['expires_on']:null,$status,$status==='verified'?$uid:null,$status==='verified'?date('Y-m-d H:i:s'):null,trim((string)($in['notes']??''))?:null]);$this->audit($oid,$uid,'credential.created',(string)$this->db->lastInsertId());
+    }
+
+    public function credentialTypes(int $oid): array
+    {
+        $q=$this->db->prepare('SELECT * FROM credential_types WHERE organization_id=? AND active=1 ORDER BY name');$q->execute([$oid]);return $q->fetchAll();
+    }
+
+    public function credentials(int $oid): array
+    {
+        $this->db->prepare('UPDATE member_credentials SET status="expired" WHERE organization_id=? AND status="verified" AND expires_on<CURDATE()')->execute([$oid]);$q=$this->db->prepare('SELECT mc.*,ct.name credential_name,ct.warning_days,u.name staff_name,DATEDIFF(mc.expires_on,CURDATE()) days_remaining FROM member_credentials mc JOIN credential_types ct ON ct.id=mc.credential_type_id JOIN memberships m ON m.id=mc.membership_id JOIN users u ON u.id=m.user_id WHERE mc.organization_id=? ORDER BY FIELD(mc.status,"expired","pending","rejected","verified"),mc.expires_on,u.name');$q->execute([$oid]);return $q->fetchAll();
+    }
+
     private function userForMembership(int $oid,int $memberId): int{$q=$this->db->prepare('SELECT user_id FROM memberships WHERE id=? AND organization_id=?');$q->execute([$memberId,$oid]);return (int)$q->fetchColumn();}
 
     private function membership(int $organizationId,mixed $id): int{$q=$this->db->prepare('SELECT id FROM memberships WHERE id=? AND organization_id=? AND status="active"');$q->execute([(int)$id,$organizationId]);$found=$q->fetchColumn();if(!$found)throw new InvalidArgumentException('Staff member unavailable.');return (int)$found;}
