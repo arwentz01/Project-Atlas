@@ -44,6 +44,7 @@ This checkpoint connects Atlas's multi-tenant organization foundation while pres
 - Explainable fairness metrics for hours, openings, closings, weekends, target variance, and eligibility-aware candidate guidance
 - Date-range operational reports, workforce-hour exports, request/callout summaries, coverage indicators, and administrator audit history
 - Credential catalog, employee credential records, verification state, expiration warnings, and compliance visibility
+- Employee clock-in/out, optional shift linkage, break capture, timesheet submission, and manager approval
 - Recipient acceptance, manager approval, withdrawal, and expiration
 - Swap-aware eligibility, overlap, availability, and qualification checks
 - Responsive staff and manager navigation
