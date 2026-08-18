@@ -37,6 +37,7 @@ This checkpoint connects Atlas's multi-tenant organization foundation while pres
 - Time-off approval, denial, cancellation, and eligibility integration
 - Shift giveaways and direct employee trades
 - Partial-shift relief assignments
+- Same-day callouts with urgent replacement offers, eligibility checks, acceptance tracking, and audited reassignment
 - Recipient acceptance, manager approval, withdrawal, and expiration
 - Swap-aware eligibility, overlap, availability, and qualification checks
 - Responsive staff and manager navigation
