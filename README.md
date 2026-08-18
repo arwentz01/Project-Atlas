@@ -86,3 +86,13 @@ Organization membership is checked server-side for every tenant-scoped action. O
 After pulling this checkpoint into an existing Atlas installation, run `php bin/migrate.php` again so the provider-session and rotation tables are created. Existing accounts, organizations, and schedules are preserved.
 
 Run the `bin/check.php` script with the MAMP PHP binary to verify the PHP version, required extension, environment file, database connection, and migration state before browser testing. Organization administrators can also open the System Status page inside Atlas.
+
+### Runtime audit
+
+After migrating and creating the first organization, run the repository query audit with the same PHP binary used by MAMP:
+
+```bash
+/Applications/MAMP/bin/php/php8.3.30/bin/php bin/audit.php
+```
+
+The audit executes every major read path inside a rolled-back transaction and reports the exact failing repository method before browser testing.
