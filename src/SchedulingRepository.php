@@ -374,6 +374,26 @@ final class SchedulingRepository
         $this->db->prepare('UPDATE member_credentials SET status="expired" WHERE organization_id=? AND status="verified" AND expires_on<CURDATE()')->execute([$oid]);$q=$this->db->prepare('SELECT mc.*,ct.name credential_name,ct.warning_days,u.name staff_name,DATEDIFF(mc.expires_on,CURDATE()) days_remaining FROM member_credentials mc JOIN credential_types ct ON ct.id=mc.credential_type_id JOIN memberships m ON m.id=mc.membership_id JOIN users u ON u.id=m.user_id WHERE mc.organization_id=? ORDER BY FIELD(mc.status,"expired","pending","rejected","verified"),mc.expires_on,u.name');$q->execute([$oid]);return $q->fetchAll();
     }
 
+    public function clockIn(int $oid,int $memberId,?int $shiftId=null): void
+    {
+        $member=$this->membership($oid,$memberId);$q=$this->db->prepare('SELECT COUNT(*) FROM time_entries WHERE organization_id=? AND membership_id=? AND status="open"');$q->execute([$oid,$member]);if($q->fetchColumn())throw new InvalidArgumentException('You are already clocked in.');$shift=$shiftId?$this->owned('shifts',$oid,$shiftId,true):null;$this->db->prepare('INSERT INTO time_entries (organization_id,membership_id,shift_id,clocked_in_at) VALUES (?,?,?,NOW())')->execute([$oid,$member,$shift]);
+    }
+
+    public function clockOut(int $oid,int $memberId,int $breakMinutes=0,string $note=''): void
+    {
+        $member=$this->membership($oid,$memberId);$q=$this->db->prepare('UPDATE time_entries SET clocked_out_at=NOW(),break_minutes=?,employee_note=?,status="submitted" WHERE organization_id=? AND membership_id=? AND status="open"');$q->execute([max(0,min(600,$breakMinutes)),trim($note)?:null,$oid,$member]);if(!$q->rowCount())throw new InvalidArgumentException('No open time entry was found.');
+    }
+
+    public function timeEntries(int $oid,?int $memberId=null): array
+    {
+        $sql='SELECT te.*,u.name staff_name,s.shift_date,TIMESTAMPDIFF(MINUTE,te.clocked_in_at,COALESCE(te.clocked_out_at,NOW()))-te.break_minutes worked_minutes FROM time_entries te JOIN memberships m ON m.id=te.membership_id JOIN users u ON u.id=m.user_id LEFT JOIN shifts s ON s.id=te.shift_id WHERE te.organization_id=?';$args=[$oid];if($memberId){$sql.=' AND te.membership_id=?';$args[]=$memberId;}$sql.=' ORDER BY te.clocked_in_at DESC LIMIT 200';$q=$this->db->prepare($sql);$q->execute($args);return $q->fetchAll();
+    }
+
+    public function reviewTimeEntry(int $oid,int $uid,int $entryId,string $decision,string $note=''): void
+    {
+        if(!in_array($decision,['approved','rejected'],true))throw new InvalidArgumentException('Invalid time-entry decision.');$q=$this->db->prepare('UPDATE time_entries SET status=?,manager_note=?,reviewed_by=?,reviewed_at=NOW() WHERE id=? AND organization_id=? AND status="submitted"');$q->execute([$decision,trim($note)?:null,$uid,$entryId,$oid]);if(!$q->rowCount())throw new InvalidArgumentException('Submitted time entry unavailable.');$this->audit($oid,$uid,'time_entry.'.$decision,(string)$entryId);
+    }
+
     private function userForMembership(int $oid,int $memberId): int{$q=$this->db->prepare('SELECT user_id FROM memberships WHERE id=? AND organization_id=?');$q->execute([$memberId,$oid]);return (int)$q->fetchColumn();}
 
     private function membership(int $organizationId,mixed $id): int{$q=$this->db->prepare('SELECT id FROM memberships WHERE id=? AND organization_id=? AND status="active"');$q->execute([(int)$id,$organizationId]);$found=$q->fetchColumn();if(!$found)throw new InvalidArgumentException('Staff member unavailable.');return (int)$found;}
