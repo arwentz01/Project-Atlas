@@ -72,6 +72,10 @@ $readChecks = [
     'Master schedules' => fn() => $scheduling->masterSchedules($organizationId),
     'Master schedule entries' => fn() => $scheduling->masterScheduleEntries($organizationId),
     'Master schedule generations' => fn() => $scheduling->masterScheduleGenerations($organizationId),
+    'Master generation items' => fn() => $scheduling->masterGenerationItems($organizationId, null),
+    'Schedule exceptions' => fn() => $scheduling->scheduleExceptions($organizationId),
+    'Master employee patterns' => fn() => $scheduling->masterEmployeePatterns($organizationId, 0),
+    'Master coverage validation' => fn() => $scheduling->masterCoverageGaps($organizationId, 0),
 ];
 
 $db->beginTransaction();
