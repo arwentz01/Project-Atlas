@@ -76,6 +76,12 @@ $readChecks = [
     'Schedule exceptions' => fn() => $scheduling->scheduleExceptions($organizationId),
     'Master employee patterns' => fn() => $scheduling->masterEmployeePatterns($organizationId, 0),
     'Master coverage validation' => fn() => $scheduling->masterCoverageGaps($organizationId, 0),
+    'Weekly schedule board' => fn() => $scheduling->weekBoard($organizationId, $today),
+    'Shift history' => fn() => $scheduling->shiftHistory($organizationId),
+    'Employee workspace' => fn() => $scheduling->employeeWorkspace($organizationId, $membershipId),
+    'Notification preferences' => fn() => $scheduling->notificationPreferences($organizationId, $membershipId),
+    'Membership access' => fn() => $scheduling->membershipAccess($organizationId),
+    'Scheduling command center' => fn() => $scheduling->commandCenter($organizationId, $today),
 ];
 
 $db->beginTransaction();
