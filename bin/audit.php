@@ -84,6 +84,10 @@ $readChecks = [
     'Membership access' => fn() => $scheduling->membershipAccess($organizationId),
     'Scheduling command center' => fn() => $scheduling->commandCenter($organizationId, $today),
     'Account sessions' => fn() => $auth->sessions((int)$db->query('SELECT user_id FROM memberships WHERE id=' . $membershipId)->fetchColumn()),
+    'Organization settings' => fn() => $atlas->organizationSettings($organizationId),
+    'Department schedule defaults' => fn() => $atlas->departmentDefaults($organizationId),
+    'Employee import batches' => fn() => $atlas->importBatches($organizationId),
+    'Workforce administration' => fn() => $atlas->workforceAdmin($organizationId, $membershipId),
 ];
 
 $db->beginTransaction();
