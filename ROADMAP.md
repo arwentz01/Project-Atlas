@@ -107,23 +107,23 @@ Owner, administrator, scheduler, supervisor, and member roles exist with granula
 
 ## Phase 11: Notifications and communication
 
-In-app notifications, account-wide messages, read state, and preferences are built. Email delivery, templates, quiet hours, digests, failure tracking, and publication notifications remain planned.
+In-app notifications, account-wide messages, read state, preferences, organization templates, quiet hours, digest cadence, delivery queueing, failure tracking, and publication notifications are built. Sending queued email and web-push deliveries still requires a production delivery worker and provider.
 
 ## Phase 12: Credentials and compliance
 
-Credential types, verification, expiration, reminders, risk indicators, and eligibility integration are built. Secure uploads, renewals, requirements by position, and compliance forecasting remain planned.
+Credential types, verification, expiration, reminders, risk indicators, eligibility integration, secure source uploads, renewal requests, requirements by position, and employee compliance forecasting are built.
 
 ## Phase 13: Time clock and labor
 
-Clocking, breaks, review, pay profiles, overtime thresholds, previews, CSV export, and export history are built. Exceptions, missed punches, period locking, break compliance, and payroll integrations remain planned.
+Clocking, breaks, review, pay profiles, overtime thresholds, previews, CSV export, export history, break-compliance scanning, exception resolution, and enforced period locking are built. Automated missed-punch generation and payroll-provider integrations remain planned.
 
 ## Phase 14: Fairness and recommendations
 
-Explainable eligibility and workload ranking exists. Adjustable weights, cost, undesirable-shift distribution, declined offers, bias monitoring, and recommendation-outcome comparison remain planned. Atlas recommendations must remain advisory.
+Explainable eligibility and workload ranking now includes adjustable weights for hours, openings, closings, weekends, declined offers, and estimated cost. Recommendation outcomes and manager overrides can be recorded and compared. Atlas recommendations remain advisory and do not infer protected traits.
 
 ## Phase 15: Mobile employee experience
 
-Today, upcoming schedule, clocking, requests, trades, callouts, messages, alerts, and profile access are built. PWA installation, offline access, push notifications, calendar export, acknowledgment, dark mode, and accessibility remain planned.
+Today, upcoming schedule, clocking, requests, trades, callouts, messages, alerts, profile access, PWA installation, cached offline shell access, push preferences, calendar export, shift acknowledgment, dark mode, keyboard focus, reduced motion, and mobile safe-area support are built. Actual web-push delivery requires a production push provider.
 
 ## Phase 16: Reports and audit
 
