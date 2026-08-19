@@ -39,6 +39,7 @@ $atlas = new AtlasRepository($db);
 $scheduling = new SchedulingRepository($db);
 $advanced = new AdvancedOperationsRepository($db);
 $experience = new WorkforceExperienceRepository($db);
+$production = new ProductionReadinessRepository($db);
 $auth = new Auth($db);
 $today = date('Y-m-d');
 $monthStart = date('Y-m-01');
@@ -102,6 +103,12 @@ $readChecks = [
     'Labor operations' => fn() => $experience->laborOperations($organizationId),
     'Fairness operations' => fn() => $experience->fairnessOperations($organizationId),
     'Schedule acknowledgments' => fn() => $experience->acknowledgments($organizationId, $membershipId),
+    'Trend reports' => fn() => $production->trendReport($organizationId, $monthStart, $monthEnd),
+    'Global search' => fn() => $production->search($organizationId, 'audit'),
+    'Saved views' => fn() => $production->savedViews($organizationId, $membershipId),
+    'Recent navigation' => fn() => $production->recentNavigation($organizationId, $membershipId),
+    'Data import jobs' => fn() => $production->importJobs($organizationId),
+    'Support requests' => fn() => $production->supportRequests($organizationId),
 ];
 
 $db->beginTransaction();
