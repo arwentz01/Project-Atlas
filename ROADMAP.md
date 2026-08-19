@@ -73,37 +73,37 @@ Atlas is approximately **0.7 in feature breadth** and **0.5 in production readin
 - [x] Direct and drag-and-drop editing
 - [x] Ranked replacement recommendations
 - [x] Before-and-after shift history
-- [ ] Undoable schedule changes
-- [ ] Daily, weekly, monthly, and print views
+- [x] Undoable schedule changes
+- [x] Daily, weekly, monthly, and print-ready views
 - [x] Draft and published state visibility
-- [ ] Bulk shift selection and editing foundation
-- [ ] Overnight-shift validation
+- [x] Bulk shift selection and editing foundation
+- [x] Overnight-shift validation
 
 **Acceptance:** all moves are auditable; invalid assignments are blocked unless an authorized override is recorded; date views agree; large weeks remain usable.
 
 ## Phase 5: Master Schedule
 
-Named and effective-dated baselines, bulk weekday entry, editing, versioning, employee totals, coverage validation, holidays, special hours, draft generation, conflict resolution, duplicate protection, and employee publication are built. Remaining refinement includes visual version comparison, restoration, cost previews, and complete automatic alternate-master substitution.
+Named and effective-dated baselines, bulk weekday entry, editing, versioning, employee totals, coverage validation, holidays, special hours, draft generation, conflict resolution, duplicate protection, and employee publication are built. Version restoration is supported through versioned baseline duplication. Visual comparison, cost preview, and automatic alternate-master substitution remain refinement work.
 
 ## Phase 6: Employee requests
 
-Availability, preferences, time off, partial-day requests, trades, giveaways, partial coverage, recipient response, manager approval, withdrawal, and eligibility rechecking are built. Policy automation, balances, blackout rules, request calendars, and multi-level approval remain planned.
+Availability, preferences, time off, partial-day requests, trades, giveaways, partial coverage, recipient response, manager approval, withdrawal, and eligibility rechecking are built. Policy definitions, balances, blackout periods, and configurable approval levels are now built in the Operations Console. Calendar refinement and automatic multi-level routing remain planned.
 
 ## Phase 7: Callouts and urgent coverage
 
-Callout reporting, open replacement coverage, offers, responses, and manager selection are built. Escalation waves, deadlines, outbound delivery, late arrival, early departure, and attendance analytics remain planned.
+Callout reporting, open replacement coverage, offers, responses, manager selection, escalation waves, response deadlines, late arrivals, early departures, no-shows, and 90-day attendance analytics are built. Outbound delivery remains planned.
 
 ## Phase 8: Coverage intelligence
 
-Recurring requirements, provider/station/function coverage, priorities, daily gaps, and Master Schedule validation are built. Heatmaps, interval analysis, skill mix, float pools, break coverage, and forecasting remain planned.
+Recurring requirements, provider/station/function coverage, priorities, daily gaps, Master Schedule validation, interval forecasts, skill-mix notes, float-pool counts, break coverage, and demand-versus-assigned gap indicators are built. A richer visual heatmap remains planned.
 
 ## Phase 9: Scheduling command center
 
-The initial unified queue is built. Direct resolution, urgency scoring, ownership, deadlines, snoozing, and readiness scoring remain planned.
+The unified queue now supports direct resolution, urgency scoring, ownership, deadlines, 24-hour snoozing, and readiness-oriented coverage indicators.
 
 ## Phase 10: Roles, permissions, and scopes
 
-Owner, administrator, scheduler, supervisor, and member roles exist with granular permission and scope storage. Complete server-side enforcement, temporary delegation, expiration, payroll masking, and a formal permission-matrix test suite are production gates.
+Owner, administrator, scheduler, supervisor, and member roles exist with granular permission and scope storage. Server-side capability and resource-scope enforcement now protects the advanced operations actions, including temporary delegated access with expiration. Extending the policy check across every legacy handler, payroll masking, and a formal permission-matrix test suite remain production gates.
 
 ## Phase 11: Notifications and communication
 
