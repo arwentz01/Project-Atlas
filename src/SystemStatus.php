@@ -29,6 +29,10 @@ final class SystemStatus
         'employee_documents',
         'time_off_policies','time_off_balances','request_blackouts','callout_escalations','attendance_events',
         'coverage_demand_forecasts','command_center_items','access_delegations',
+        'notification_delivery_settings','notification_templates','notification_deliveries',
+        'position_credential_requirements','credential_renewals','credential_documents',
+        'labor_periods','time_entry_exceptions','break_compliance_rules',
+        'fairness_settings','recommendation_outcomes','schedule_acknowledgments',
     ];
 
     public static function missingTables(PDO $db): array
