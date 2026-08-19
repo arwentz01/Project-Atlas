@@ -33,6 +33,7 @@ final class SystemStatus
         'position_credential_requirements','credential_renewals','credential_documents',
         'labor_periods','time_entry_exceptions','break_compliance_rules',
         'fairness_settings','recommendation_outcomes','schedule_acknowledgments',
+        'saved_views','navigation_activity','data_import_jobs','data_import_rows','background_jobs','support_requests',
     ];
 
     public static function missingTables(PDO $db): array
