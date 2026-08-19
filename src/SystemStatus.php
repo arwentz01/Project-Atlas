@@ -27,6 +27,8 @@ final class SystemStatus
         'organization_settings','department_schedule_defaults','employee_import_batches','employee_import_rows',
         'employment_records','secondary_work_assignments','employee_manager_notes','employee_onboarding_items','employee_profile_snapshots',
         'employee_documents',
+        'time_off_policies','time_off_balances','request_blackouts','callout_escalations','attendance_events',
+        'coverage_demand_forecasts','command_center_items','access_delegations',
     ];
 
     public static function missingTables(PDO $db): array
