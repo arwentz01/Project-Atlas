@@ -37,6 +37,7 @@ if (!$organizationId || !$membershipId) {
 
 $atlas = new AtlasRepository($db);
 $scheduling = new SchedulingRepository($db);
+$auth = new Auth($db);
 $today = date('Y-m-d');
 $monthStart = date('Y-m-01');
 $monthEnd = date('Y-m-t');
@@ -82,6 +83,7 @@ $readChecks = [
     'Notification preferences' => fn() => $scheduling->notificationPreferences($organizationId, $membershipId),
     'Membership access' => fn() => $scheduling->membershipAccess($organizationId),
     'Scheduling command center' => fn() => $scheduling->commandCenter($organizationId, $today),
+    'Account sessions' => fn() => $auth->sessions((int)$db->query('SELECT user_id FROM memberships WHERE id=' . $membershipId)->fetchColumn()),
 ];
 
 $db->beginTransaction();
