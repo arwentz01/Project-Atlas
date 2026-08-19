@@ -12,6 +12,7 @@ require_once __DIR__ . '/AtlasRepository.php';
 require_once __DIR__ . '/SchedulingRepository.php';
 require_once __DIR__ . '/AccessPolicy.php';
 require_once __DIR__ . '/AdvancedOperationsRepository.php';
+require_once __DIR__ . '/WorkforceExperienceRepository.php';
 
 Config::load(dirname(__DIR__));
 
