@@ -1,5 +1,7 @@
 # Atlas Staffing
 
+See [ROADMAP.md](ROADMAP.md) for the canonical product phases, acceptance criteria, current status, and release milestones.
+
 Atlas Staffing is a visual-first ambulatory workforce scheduling platform for primary care, specialty practices, outpatient offices, and ambulatory surgery centers.
 
 The Master Schedule module keeps normal recurring weekly assignments separate from live callouts, approved time off, trades, and one-time changes. Administrators can maintain named, effective-dated baselines and generate duplicate-protected live weeks. Conflicting assignments become open shifts for review while the baseline remains unchanged.
