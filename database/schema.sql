@@ -1210,6 +1210,92 @@ CREATE TABLE IF NOT EXISTS schedule_acknowledgments (
     CONSTRAINT fk_schedule_ack_shift FOREIGN KEY (shift_id) REFERENCES shifts(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS saved_views (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    organization_id BIGINT UNSIGNED NOT NULL,
+    membership_id BIGINT UNSIGNED NOT NULL,
+    view_type ENUM('report','schedule','search') NOT NULL,
+    name VARCHAR(140) NOT NULL,
+    route VARCHAR(120) NOT NULL,
+    parameters_json JSON NOT NULL,
+    favorite TINYINT(1) NOT NULL DEFAULT 0,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY uq_saved_view_name (membership_id,view_type,name),
+    CONSTRAINT fk_saved_view_org FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE,
+    CONSTRAINT fk_saved_view_member FOREIGN KEY (membership_id) REFERENCES memberships(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS navigation_activity (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    organization_id BIGINT UNSIGNED NOT NULL,
+    membership_id BIGINT UNSIGNED NOT NULL,
+    route VARCHAR(120) NOT NULL,
+    title VARCHAR(180) NOT NULL,
+    visited_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    KEY idx_navigation_recent (membership_id,visited_at),
+    CONSTRAINT fk_navigation_org FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE,
+    CONSTRAINT fk_navigation_member FOREIGN KEY (membership_id) REFERENCES memberships(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS data_import_jobs (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    organization_id BIGINT UNSIGNED NOT NULL,
+    import_type ENUM('locations','departments','positions','coverage_requirements') NOT NULL,
+    status ENUM('preview','committed','rejected','rolled_back') NOT NULL DEFAULT 'preview',
+    source_name VARCHAR(255) NULL,
+    row_count INT UNSIGNED NOT NULL DEFAULT 0,
+    valid_count INT UNSIGNED NOT NULL DEFAULT 0,
+    invalid_count INT UNSIGNED NOT NULL DEFAULT 0,
+    created_by BIGINT UNSIGNED NOT NULL,
+    committed_at DATETIME NULL,
+    rolled_back_at DATETIME NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_data_import_org FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE,
+    CONSTRAINT fk_data_import_user FOREIGN KEY (created_by) REFERENCES users(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS data_import_rows (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    import_job_id BIGINT UNSIGNED NOT NULL,
+    row_number INT UNSIGNED NOT NULL,
+    payload_json JSON NOT NULL,
+    status ENUM('valid','invalid','committed','rolled_back') NOT NULL,
+    error_message VARCHAR(500) NULL,
+    created_resource_id BIGINT UNSIGNED NULL,
+    CONSTRAINT fk_data_import_row_job FOREIGN KEY (import_job_id) REFERENCES data_import_jobs(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS background_jobs (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    organization_id BIGINT UNSIGNED NULL,
+    job_type VARCHAR(100) NOT NULL,
+    payload_json JSON NOT NULL,
+    status ENUM('queued','running','completed','failed') NOT NULL DEFAULT 'queued',
+    attempts INT UNSIGNED NOT NULL DEFAULT 0,
+    available_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    locked_at DATETIME NULL,
+    completed_at DATETIME NULL,
+    failure_message VARCHAR(500) NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    KEY idx_background_queue (status,available_at),
+    CONSTRAINT fk_background_job_org FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS support_requests (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    organization_id BIGINT UNSIGNED NOT NULL,
+    membership_id BIGINT UNSIGNED NOT NULL,
+    category ENUM('question','defect','access','data','security') NOT NULL DEFAULT 'question',
+    subject VARCHAR(180) NOT NULL,
+    description TEXT NOT NULL,
+    status ENUM('open','in_progress','resolved','closed') NOT NULL DEFAULT 'open',
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT fk_support_request_org FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE,
+    CONSTRAINT fk_support_request_member FOREIGN KEY (membership_id) REFERENCES memberships(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS email_verification_tokens (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     user_id BIGINT UNSIGNED NOT NULL,
