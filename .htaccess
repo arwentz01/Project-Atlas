@@ -1,14 +1,20 @@
 Options -Indexes
 DirectoryIndex index.php
 
+<FilesMatch "^(\.env|composer\.(json|lock)|ROADMAP\.md)$">
+  Require all denied
+</FilesMatch>
+
+<IfModule mod_headers.c>
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set X-Frame-Options "DENY"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
+</IfModule>
+
 <IfModule mod_rewrite.c>
   RewriteEngine On
-
-  # Public root-level product feature showcase.
-  RewriteRule ^features/?$ features.php [L]
-
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{REQUEST_FILENAME} !-d
   RewriteRule ^ index.php [QSA,L]
 </IfModule>
-
