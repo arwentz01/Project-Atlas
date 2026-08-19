@@ -23,8 +23,10 @@ final class Config
 
     public static function get(string $key, ?string $default = null): ?string
     {
-        $environment = getenv($key);
-        return $environment !== false ? $environment : (self::$values[$key] ?? $default);
+        $atlasEnvironment=getenv('ATLAS_'.$key);
+        if($atlasEnvironment!==false)return $atlasEnvironment;
+        if(array_key_exists($key,self::$values))return self::$values[$key];
+        $environment=getenv($key);
+        return $environment!==false?$environment:$default;
     }
 }
-
