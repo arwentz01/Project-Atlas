@@ -162,9 +162,11 @@ Production configuration templates, secure-cookie controls, backup and restore t
 - [x] Seeded providers, stations, work functions, coverage, and requirements
 - [x] Seeded credentials, pay profiles, time entries, callouts, messages, and notifications
 - [x] Username/password credential cards with copy controls and responsive layout
+- [x] Demo Testing Center with role matrix, dataset metrics, and guided smoke loop
+- [x] Repeat-safe edge-case fixtures for schedule requests, trades, command items, forecasts, credentials, and labor exceptions
+- [x] Owner-only demo reset and deletion with real-organization protection
 - [x] Incremental statement-by-statement schema migration with missing-table verification
 - [ ] Automated browser smoke suite that signs into each role and verifies allowed navigation/actions
-- [ ] Safe demo-organization reset and deletion workflow
 
 **Acceptance:** a newly installed Atlas instance can create a populated sandbox in one action; every role can sign in; demo records remain tenant-isolated; credentials remain readable at all viewport widths; automated browser coverage verifies permissions and core workflows.
 
@@ -189,6 +191,6 @@ Production configuration templates, secure-cookie controls, backup and restore t
 1. Run the full browser smoke pass against the populated demo organization under every role.
 2. Extend the Phase 10 permission policy across every legacy action handler.
 3. Add automated browser, accessibility, tenant-isolation, scheduling, and performance test suites.
-4. Build safe demo reset/deletion and repeatable fixture-version handling.
+4. Add fixture-version tracking and visible smoke-test result persistence.
 5. Connect transactional email and web-push transport adapters.
 6. Complete independent security review and a verified staging-to-production release rehearsal.
