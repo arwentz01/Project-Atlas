@@ -38,12 +38,12 @@ Atlas is approximately **0.7 in feature breadth** and **0.5 in production readin
 - [x] Automatic supervisor routing
 - [x] Invitations and membership lifecycle
 - [x] Resource editing and archiving
-- [ ] Editable timezone and organization settings
-- [ ] Operating hours and department scheduling defaults
+- [x] Editable timezone and organization settings
+- [x] Operating hours and department scheduling defaults
 - [x] Holiday and closure rules
-- [ ] Organization branding settings
-- [ ] Employee CSV import foundation with validation preview
-- [ ] Archive confirmation workflow
+- [x] Organization branding settings
+- [x] Employee CSV import foundation with validation preview
+- [x] Archive confirmation workflow
 
 **Acceptance:** every setting is organization-scoped; archived resources retain history; imports reject invalid or duplicate rows without partial writes.
 
@@ -53,13 +53,13 @@ Atlas is approximately **0.7 in feature breadth** and **0.5 in production readin
 - [x] Primary workforce assignment
 - [x] Employment type and expected hours
 - [x] Availability, time off, credentials, callouts, and work history
-- [ ] Employment status and effective dates
-- [ ] Secondary locations, departments, and positions
-- [ ] Restricted manager notes
-- [ ] Onboarding checklist
-- [ ] Profile snapshots and offboarding foundation
+- [x] Employment status and effective dates
+- [x] Secondary locations, departments, and positions
+- [x] Restricted manager notes
+- [x] Onboarding checklist
+- [x] Profile snapshots and offboarding foundation
 - [x] Search and filters
-- [ ] Secure employee document storage
+- [x] Secure employee document storage
 
 **Acceptance:** employee information is tenant-isolated; manager notes are restricted; historical schedules remain after offboarding; assignments respect effective dates.
 
