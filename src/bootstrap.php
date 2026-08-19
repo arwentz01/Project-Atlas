@@ -9,6 +9,7 @@ require_once __DIR__ . '/Database.php';
 require_once __DIR__ . '/Csrf.php';
 require_once __DIR__ . '/Auth.php';
 require_once __DIR__ . '/AtlasRepository.php';
+require_once __DIR__ . '/DemoOrganizationSeeder.php';
 require_once __DIR__ . '/SchedulingRepository.php';
 require_once __DIR__ . '/AccessPolicy.php';
 require_once __DIR__ . '/AdvancedOperationsRepository.php';
