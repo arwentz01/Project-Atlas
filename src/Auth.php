@@ -42,19 +42,34 @@ final class Auth
         return ['id' => $id, 'name' => $name, 'email' => $email];
     }
 
-    public function login(string $email, string $password): bool
+    public function login(string $identifier, string $password): bool
     {
-        $email=strtolower(trim($email));$ip=$_SERVER['REMOTE_ADDR']??null;$q=$this->db->prepare('SELECT COUNT(*) FROM login_attempts WHERE email=? AND (ip_address<=>?) AND successful=0 AND attempted_at>DATE_SUB(NOW(),INTERVAL 15 MINUTE)');$q->execute([$email,$ip]);if((int)$q->fetchColumn()>=5)throw new InvalidArgumentException('Too many unsuccessful attempts. Try again in 15 minutes.');
-        $statement = $this->db->prepare('SELECT id, password_hash FROM users WHERE email = ? LIMIT 1');
-        $statement->execute([$email]);
+        $identifier=strtolower(trim($identifier));$ip=$_SERVER['REMOTE_ADDR']??null;$q=$this->db->prepare('SELECT COUNT(*) FROM login_attempts WHERE email=? AND (ip_address<=>?) AND successful=0 AND attempted_at>DATE_SUB(NOW(),INTERVAL 15 MINUTE)');$q->execute([$identifier,$ip]);if((int)$q->fetchColumn()>=5)throw new InvalidArgumentException('Too many unsuccessful attempts. Try again in 15 minutes.');
+        $statement = str_contains($identifier,'@')
+            ? $this->db->prepare('SELECT id,password_hash FROM users WHERE email=? LIMIT 1')
+            : $this->db->prepare('SELECT u.id,u.password_hash FROM local_accounts la JOIN users u ON u.id=la.user_id WHERE la.username=? LIMIT 1');
+        $statement->execute([$identifier]);
         $user = $statement->fetch();
         if (!$user || !password_verify($password, $user['password_hash'])) {
-            $this->db->prepare('INSERT INTO login_attempts (email,ip_address,successful) VALUES (?,?,0)')->execute([$email,$ip]);
+            $this->db->prepare('INSERT INTO login_attempts (email,ip_address,successful) VALUES (?,?,0)')->execute([$identifier,$ip]);
             return false;
         }
-        $this->db->prepare('INSERT INTO login_attempts (email,ip_address,successful) VALUES (?,?,1)')->execute([$email,$ip]);
+        $this->db->prepare('INSERT INTO login_attempts (email,ip_address,successful) VALUES (?,?,1)')->execute([$identifier,$ip]);
         $this->startSession((int)$user['id']);
         return true;
+    }
+
+    public function mustChangePassword(int $userId): bool
+    {
+        $q=$this->db->prepare('SELECT must_change_password FROM local_accounts WHERE user_id=?');$q->execute([$userId]);return (bool)$q->fetchColumn();
+    }
+
+    public function changePassword(int $userId,string $current,string $password): void
+    {
+        if(strlen($password)<8)throw new InvalidArgumentException('Your new password must be at least 8 characters.');
+        $q=$this->db->prepare('SELECT password_hash FROM users WHERE id=?');$q->execute([$userId]);$hash=$q->fetchColumn();
+        if(!$hash||!password_verify($current,(string)$hash))throw new InvalidArgumentException('Your current password was not recognized.');
+        $this->db->beginTransaction();try{$this->db->prepare('UPDATE users SET password_hash=? WHERE id=?')->execute([password_hash($password,PASSWORD_DEFAULT),$userId]);$this->db->prepare('UPDATE local_accounts SET must_change_password=0 WHERE user_id=?')->execute([$userId]);$this->db->commit();}catch(Throwable $e){$this->db->rollBack();throw $e;}
     }
 
     public function logout(): void

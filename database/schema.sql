@@ -1501,3 +1501,24 @@ CREATE TABLE IF NOT EXISTS employee_documents (
     CONSTRAINT fk_employee_document_member FOREIGN KEY (membership_id) REFERENCES memberships(id) ON DELETE CASCADE,
     CONSTRAINT fk_employee_document_user FOREIGN KEY (uploaded_by) REFERENCES users(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS organization_security_settings (
+    organization_id BIGINT UNSIGNED PRIMARY KEY,
+    allow_local_accounts TINYINT(1) NOT NULL DEFAULT 0,
+    updated_by BIGINT UNSIGNED NOT NULL,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT fk_org_security_org FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE,
+    CONSTRAINT fk_org_security_user FOREIGN KEY (updated_by) REFERENCES users(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS local_accounts (
+    user_id BIGINT UNSIGNED PRIMARY KEY,
+    organization_id BIGINT UNSIGNED NOT NULL,
+    username VARCHAR(80) NOT NULL UNIQUE,
+    must_change_password TINYINT(1) NOT NULL DEFAULT 1,
+    created_by BIGINT UNSIGNED NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_local_account_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    CONSTRAINT fk_local_account_org FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE,
+    CONSTRAINT fk_local_account_creator FOREIGN KEY (created_by) REFERENCES users(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
