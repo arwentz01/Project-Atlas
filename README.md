@@ -12,6 +12,8 @@ Atlas now includes a seven-day employee schedule board with drag-and-drop reassi
 
 The Phases 4–10 operations pass adds schedule undo and bulk editing, overnight-shift safeguards, time-off policies and balances, request blackouts, callout escalation waves, attendance events and analytics, interval coverage forecasts, owned command-center work, and expiring delegated access. Administrators can manage these tools from the Operations Console.
 
+The Phases 11–15 workforce-experience pass adds notification templates and delivery tracking, quiet hours and digests, publication alerts, credential requirements and secure source files, renewal and compliance forecasting, labor exceptions and locked periods, configurable advisory fairness weights, recommendation outcome review, and an installable mobile experience with offline shell caching, calendar export, acknowledgment, dark mode, and accessibility safeguards.
+
 Organization administration includes editable timezone and visual identity, operating hours, department scheduling defaults, all-or-nothing CSV invitation imports, archive confirmations, employment lifecycle records, secondary assignments, restricted manager notes, onboarding checklists, profile snapshots, offboarding, and protected employee document storage.
 
 This checkpoint connects Atlas's multi-tenant organization foundation while preserving the approved visual system.
