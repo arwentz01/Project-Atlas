@@ -1,0 +1,21 @@
+name: Atlas checks
+on:
+  push:
+  pull_request:
+jobs:
+  static:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: pdo_mysql, mbstring, fileinfo
+      - name: PHP syntax
+        run: find . -name '*.php' -not -path './vendor/*' -print0 | xargs -0 -n1 php -l
+      - name: JavaScript syntax
+        run: node --check assets/app.js && node --check sw.js
+      - name: Manifest JSON
+        run: php -r 'json_decode(file_get_contents("manifest.json"), true, 512, JSON_THROW_ON_ERROR);'
+      - name: Security configuration
+        run: cp .env.example .env && php bin/security-audit.php
