@@ -13,6 +13,7 @@ require_once __DIR__ . '/SchedulingRepository.php';
 require_once __DIR__ . '/AccessPolicy.php';
 require_once __DIR__ . '/AdvancedOperationsRepository.php';
 require_once __DIR__ . '/WorkforceExperienceRepository.php';
+require_once __DIR__ . '/ProductionReadinessRepository.php';
 
 Config::load(dirname(__DIR__));
 
@@ -20,7 +21,7 @@ session_name('atlas_session');
 session_set_cookie_params([
     'lifetime' => 0,
     'path' => '/',
-    'secure' => (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off'),
+    'secure' => ((!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || Config::get('SESSION_SECURE') === 'true'),
     'httponly' => true,
     'samesite' => 'Lax',
 ]);
