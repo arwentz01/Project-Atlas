@@ -24,6 +24,9 @@ final class SystemStatus
         'master_schedule_versions','schedule_exceptions','master_generation_resolutions','master_generation_publications',
         'shift_history','notification_preferences','membership_permissions','membership_scopes',
         'email_verification_tokens','password_reset_tokens','login_attempts','user_sessions','verified_emails','application_errors',
+        'organization_settings','department_schedule_defaults','employee_import_batches','employee_import_rows',
+        'employment_records','secondary_work_assignments','employee_manager_notes','employee_onboarding_items','employee_profile_snapshots',
+        'employee_documents',
     ];
 
     public static function missingTables(PDO $db): array
