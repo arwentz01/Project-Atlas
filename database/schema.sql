@@ -916,6 +916,133 @@ CREATE TABLE IF NOT EXISTS membership_scopes (
     CONSTRAINT fk_membership_scope_member FOREIGN KEY (membership_id) REFERENCES memberships(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS time_off_policies (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    organization_id BIGINT UNSIGNED NOT NULL,
+    request_type_id BIGINT UNSIGNED NULL,
+    name VARCHAR(140) NOT NULL,
+    annual_hours DECIMAL(8,2) NOT NULL DEFAULT 0,
+    minimum_notice_days INT UNSIGNED NOT NULL DEFAULT 0,
+    approval_levels TINYINT UNSIGNED NOT NULL DEFAULT 1,
+    active TINYINT(1) NOT NULL DEFAULT 1,
+    UNIQUE KEY uq_time_off_policy (organization_id,name),
+    CONSTRAINT fk_time_off_policy_org FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE,
+    CONSTRAINT fk_time_off_policy_type FOREIGN KEY (request_type_id) REFERENCES request_types(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS time_off_balances (
+    organization_id BIGINT UNSIGNED NOT NULL,
+    membership_id BIGINT UNSIGNED NOT NULL,
+    policy_id BIGINT UNSIGNED NOT NULL,
+    balance_hours DECIMAL(8,2) NOT NULL DEFAULT 0,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (membership_id,policy_id),
+    CONSTRAINT fk_time_off_balance_org FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE,
+    CONSTRAINT fk_time_off_balance_member FOREIGN KEY (membership_id) REFERENCES memberships(id) ON DELETE CASCADE,
+    CONSTRAINT fk_time_off_balance_policy FOREIGN KEY (policy_id) REFERENCES time_off_policies(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS request_blackouts (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    organization_id BIGINT UNSIGNED NOT NULL,
+    starts_on DATE NOT NULL,
+    ends_on DATE NOT NULL,
+    name VARCHAR(140) NOT NULL,
+    reason VARCHAR(500) NULL,
+    created_by BIGINT UNSIGNED NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_request_blackout_org FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE,
+    CONSTRAINT fk_request_blackout_user FOREIGN KEY (created_by) REFERENCES users(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS callout_escalations (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    organization_id BIGINT UNSIGNED NOT NULL,
+    callout_id BIGINT UNSIGNED NOT NULL,
+    wave_number INT UNSIGNED NOT NULL,
+    response_due_at DATETIME NOT NULL,
+    audience VARCHAR(120) NOT NULL DEFAULT 'eligible_staff',
+    status ENUM('open','closed','expired') NOT NULL DEFAULT 'open',
+    created_by BIGINT UNSIGNED NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uq_callout_wave (callout_id,wave_number),
+    CONSTRAINT fk_callout_escalation_org FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE,
+    CONSTRAINT fk_callout_escalation_callout FOREIGN KEY (callout_id) REFERENCES callouts(id) ON DELETE CASCADE,
+    CONSTRAINT fk_callout_escalation_user FOREIGN KEY (created_by) REFERENCES users(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS attendance_events (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    organization_id BIGINT UNSIGNED NOT NULL,
+    membership_id BIGINT UNSIGNED NOT NULL,
+    shift_id BIGINT UNSIGNED NULL,
+    event_type ENUM('callout','late_arrival','early_departure','no_show') NOT NULL,
+    occurred_at DATETIME NOT NULL,
+    minutes_affected INT UNSIGNED NOT NULL DEFAULT 0,
+    notes VARCHAR(500) NULL,
+    recorded_by BIGINT UNSIGNED NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_attendance_event_org FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE,
+    CONSTRAINT fk_attendance_event_member FOREIGN KEY (membership_id) REFERENCES memberships(id) ON DELETE CASCADE,
+    CONSTRAINT fk_attendance_event_shift FOREIGN KEY (shift_id) REFERENCES shifts(id) ON DELETE SET NULL,
+    CONSTRAINT fk_attendance_event_user FOREIGN KEY (recorded_by) REFERENCES users(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS coverage_demand_forecasts (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    organization_id BIGINT UNSIGNED NOT NULL,
+    location_id BIGINT UNSIGNED NOT NULL,
+    department_id BIGINT UNSIGNED NOT NULL,
+    forecast_date DATE NOT NULL,
+    starts_at TIME NOT NULL,
+    ends_at TIME NOT NULL,
+    required_count INT UNSIGNED NOT NULL,
+    required_skill_mix VARCHAR(500) NULL,
+    float_pool_count INT UNSIGNED NOT NULL DEFAULT 0,
+    break_coverage_count INT UNSIGNED NOT NULL DEFAULT 0,
+    created_by BIGINT UNSIGNED NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_coverage_forecast_org FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE,
+    CONSTRAINT fk_coverage_forecast_location FOREIGN KEY (location_id) REFERENCES locations(id),
+    CONSTRAINT fk_coverage_forecast_department FOREIGN KEY (department_id) REFERENCES departments(id),
+    CONSTRAINT fk_coverage_forecast_user FOREIGN KEY (created_by) REFERENCES users(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS command_center_items (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    organization_id BIGINT UNSIGNED NOT NULL,
+    item_type VARCHAR(60) NOT NULL,
+    title VARCHAR(180) NOT NULL,
+    urgency_score INT UNSIGNED NOT NULL DEFAULT 50,
+    owner_membership_id BIGINT UNSIGNED NULL,
+    due_at DATETIME NULL,
+    snoozed_until DATETIME NULL,
+    status ENUM('open','resolved','dismissed') NOT NULL DEFAULT 'open',
+    resolution_notes VARCHAR(500) NULL,
+    resolved_by BIGINT UNSIGNED NULL,
+    resolved_at DATETIME NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    KEY idx_command_queue (organization_id,status,urgency_score,due_at),
+    CONSTRAINT fk_command_item_org FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE,
+    CONSTRAINT fk_command_item_owner FOREIGN KEY (owner_membership_id) REFERENCES memberships(id) ON DELETE SET NULL,
+    CONSTRAINT fk_command_item_resolver FOREIGN KEY (resolved_by) REFERENCES users(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS access_delegations (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    organization_id BIGINT UNSIGNED NOT NULL,
+    membership_id BIGINT UNSIGNED NOT NULL,
+    capability ENUM('schedule','approve','payroll','credentials') NOT NULL,
+    starts_at DATETIME NOT NULL,
+    expires_at DATETIME NOT NULL,
+    granted_by BIGINT UNSIGNED NOT NULL,
+    revoked_at DATETIME NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_access_delegation_org FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE,
+    CONSTRAINT fk_access_delegation_member FOREIGN KEY (membership_id) REFERENCES memberships(id) ON DELETE CASCADE,
+    CONSTRAINT fk_access_delegation_user FOREIGN KEY (granted_by) REFERENCES users(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS email_verification_tokens (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     user_id BIGINT UNSIGNED NOT NULL,
