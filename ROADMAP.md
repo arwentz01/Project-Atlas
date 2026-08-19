@@ -11,7 +11,7 @@ Atlas is a multi-tenant workforce operations platform for ambulatory practices, 
 
 ## Current position
 
-Atlas is approximately **0.9 in feature breadth** and **0.75 in production readiness**. Scheduling, Master Schedule, workforce workflows, mobile tools, labor, credentials, reporting, search, portability, security controls, automated checks, and deployment tooling exist. Full legacy authorization enforcement, external delivery providers, browser/load testing, independent security review, and verified hosting operations remain the largest gates.
+Atlas is approximately **0.92 in feature breadth** and **0.78 in production readiness**. Scheduling, Master Schedule, workforce workflows, mobile tools, labor, credentials, reporting, search, portability, security controls, automated checks, deployment tooling, local accounts, and a full demo sandbox exist. The Bluehost schema now completes 107 verified statements and the runtime suite reports 64 passing checks. Full legacy authorization enforcement, external delivery providers, browser/load testing, independent security review, and verified end-to-end hosting workflows remain the largest gates.
 
 ## Phase 1: Application foundation
 
@@ -27,6 +27,9 @@ Atlas is approximately **0.9 in feature breadth** and **0.75 in production readi
 - [x] Login throttling and failed-attempt recording
 - [x] User session management and revocation
 - [x] Application error recording
+- [x] Email-or-username authentication
+- [x] Organization-controlled local accounts without required email addresses
+- [x] Forced first-login password change for manually created local users
 - [ ] Production email delivery
 - [ ] External error monitoring
 
@@ -149,6 +152,22 @@ The runtime audit now has an automated test runner and continuous-integration sy
 
 Production configuration templates, secure-cookie controls, backup and restore tools, queue processing, deployment checks, migration commands, JSON health checks, environment readiness UI, privacy/security/runbook documentation, and support workflows are built. The hosting environment must still provide HTTPS certificates, transactional email and push adapters, monitoring credentials, scheduled backups, queue supervision, staging, and an independently verified production deployment.
 
+## Phase 22: Demo organization and smoke testing
+
+- [x] Separate one-click demo organization creation
+- [x] Role-based accounts for administrator, scheduler, supervisor, and member testing
+- [x] Existing authenticated creator retained as demo organization owner
+- [x] Twelve seeded staff profiles with organization structure and workforce assignments
+- [x] Seeded schedules, open shifts, Master Schedule entries, availability, and time off
+- [x] Seeded providers, stations, work functions, coverage, and requirements
+- [x] Seeded credentials, pay profiles, time entries, callouts, messages, and notifications
+- [x] Username/password credential cards with copy controls and responsive layout
+- [x] Incremental statement-by-statement schema migration with missing-table verification
+- [ ] Automated browser smoke suite that signs into each role and verifies allowed navigation/actions
+- [ ] Safe demo-organization reset and deletion workflow
+
+**Acceptance:** a newly installed Atlas instance can create a populated sandbox in one action; every role can sign in; demo records remain tenant-isolated; credentials remain readable at all viewport widths; automated browser coverage verifies permissions and core workflows.
+
 ## Release milestones
 
 | Release | Focus |
@@ -162,12 +181,14 @@ Production configuration templates, secure-cookie controls, backup and restore t
 | 0.7 | Roles, notifications, and mobile |
 | 0.8 | Reports, labor, and compliance |
 | 0.9 | Security, tests, and performance |
+| 0.95 | Local accounts, demo sandbox, and hosted smoke testing |
 | 1.0 | Production-ready workforce operations |
 
 ## Immediate build order
 
-1. Run the full migration, audit, automated test, and security suite under MAMP PHP.
+1. Run the full browser smoke pass against the populated demo organization under every role.
 2. Extend the Phase 10 permission policy across every legacy action handler.
-3. Connect transactional email and web-push transport adapters.
-4. Add browser, accessibility, tenant-isolation, scheduling, and performance test suites.
-5. Complete independent security review and a verified staging-to-production release rehearsal.
+3. Add automated browser, accessibility, tenant-isolation, scheduling, and performance test suites.
+4. Build safe demo reset/deletion and repeatable fixture-version handling.
+5. Connect transactional email and web-push transport adapters.
+6. Complete independent security review and a verified staging-to-production release rehearsal.
