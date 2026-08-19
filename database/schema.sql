@@ -974,3 +974,150 @@ CREATE TABLE IF NOT EXISTS application_errors (
     KEY idx_application_error_created (created_at),
     CONSTRAINT fk_application_error_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS organization_settings (
+    organization_id BIGINT UNSIGNED PRIMARY KEY,
+    display_name VARCHAR(160) NULL,
+    timezone VARCHAR(80) NOT NULL DEFAULT 'America/New_York',
+    week_starts_on TINYINT UNSIGNED NOT NULL DEFAULT 1,
+    operating_hours_json JSON NULL,
+    primary_color CHAR(7) NOT NULL DEFAULT '#2867d8',
+    secondary_color CHAR(7) NOT NULL DEFAULT '#7756d9',
+    logo_text VARCHAR(40) NULL,
+    updated_by BIGINT UNSIGNED NOT NULL,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT fk_org_settings_org FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE,
+    CONSTRAINT fk_org_settings_user FOREIGN KEY (updated_by) REFERENCES users(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS department_schedule_defaults (
+    department_id BIGINT UNSIGNED PRIMARY KEY,
+    organization_id BIGINT UNSIGNED NOT NULL,
+    default_starts_at TIME NULL,
+    default_ends_at TIME NULL,
+    minimum_staff SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+    allow_cross_department TINYINT(1) NOT NULL DEFAULT 0,
+    updated_by BIGINT UNSIGNED NOT NULL,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT fk_department_default_department FOREIGN KEY (department_id) REFERENCES departments(id) ON DELETE CASCADE,
+    CONSTRAINT fk_department_default_org FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE,
+    CONSTRAINT fk_department_default_user FOREIGN KEY (updated_by) REFERENCES users(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS employee_import_batches (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    organization_id BIGINT UNSIGNED NOT NULL,
+    status ENUM('validated','rejected','imported') NOT NULL,
+    row_count INT UNSIGNED NOT NULL DEFAULT 0,
+    valid_count INT UNSIGNED NOT NULL DEFAULT 0,
+    invalid_count INT UNSIGNED NOT NULL DEFAULT 0,
+    created_by BIGINT UNSIGNED NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_employee_import_org FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE,
+    CONSTRAINT fk_employee_import_user FOREIGN KEY (created_by) REFERENCES users(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS employee_import_rows (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    batch_id BIGINT UNSIGNED NOT NULL,
+    row_number INT UNSIGNED NOT NULL,
+    email VARCHAR(190) NULL,
+    role VARCHAR(40) NULL,
+    location_name VARCHAR(140) NULL,
+    department_name VARCHAR(140) NULL,
+    position_name VARCHAR(140) NULL,
+    status ENUM('valid','invalid','imported') NOT NULL,
+    error_message VARCHAR(500) NULL,
+    invitation_id BIGINT UNSIGNED NULL,
+    CONSTRAINT fk_employee_import_row_batch FOREIGN KEY (batch_id) REFERENCES employee_import_batches(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS employment_records (
+    membership_id BIGINT UNSIGNED PRIMARY KEY,
+    organization_id BIGINT UNSIGNED NOT NULL,
+    starts_on DATE NULL,
+    ends_on DATE NULL,
+    employment_status ENUM('preboarding','active','leave','ended') NOT NULL DEFAULT 'active',
+    separation_reason VARCHAR(500) NULL,
+    updated_by BIGINT UNSIGNED NOT NULL,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT fk_employment_record_member FOREIGN KEY (membership_id) REFERENCES memberships(id) ON DELETE CASCADE,
+    CONSTRAINT fk_employment_record_org FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE,
+    CONSTRAINT fk_employment_record_user FOREIGN KEY (updated_by) REFERENCES users(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS secondary_work_assignments (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    organization_id BIGINT UNSIGNED NOT NULL,
+    membership_id BIGINT UNSIGNED NOT NULL,
+    location_id BIGINT UNSIGNED NULL,
+    department_id BIGINT UNSIGNED NULL,
+    position_id BIGINT UNSIGNED NULL,
+    effective_from DATE NULL,
+    effective_to DATE NULL,
+    active TINYINT(1) NOT NULL DEFAULT 1,
+    created_by BIGINT UNSIGNED NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_secondary_assignment_org FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE,
+    CONSTRAINT fk_secondary_assignment_member FOREIGN KEY (membership_id) REFERENCES memberships(id) ON DELETE CASCADE,
+    CONSTRAINT fk_secondary_assignment_location FOREIGN KEY (location_id) REFERENCES locations(id) ON DELETE SET NULL,
+    CONSTRAINT fk_secondary_assignment_department FOREIGN KEY (department_id) REFERENCES departments(id) ON DELETE SET NULL,
+    CONSTRAINT fk_secondary_assignment_position FOREIGN KEY (position_id) REFERENCES positions(id) ON DELETE SET NULL,
+    CONSTRAINT fk_secondary_assignment_user FOREIGN KEY (created_by) REFERENCES users(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS employee_manager_notes (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    organization_id BIGINT UNSIGNED NOT NULL,
+    membership_id BIGINT UNSIGNED NOT NULL,
+    note_text VARCHAR(2000) NOT NULL,
+    created_by BIGINT UNSIGNED NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_manager_note_org FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE,
+    CONSTRAINT fk_manager_note_member FOREIGN KEY (membership_id) REFERENCES memberships(id) ON DELETE CASCADE,
+    CONSTRAINT fk_manager_note_user FOREIGN KEY (created_by) REFERENCES users(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS employee_onboarding_items (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    organization_id BIGINT UNSIGNED NOT NULL,
+    membership_id BIGINT UNSIGNED NOT NULL,
+    item_name VARCHAR(180) NOT NULL,
+    due_on DATE NULL,
+    completed_at DATETIME NULL,
+    completed_by BIGINT UNSIGNED NULL,
+    created_by BIGINT UNSIGNED NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_onboarding_org FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE,
+    CONSTRAINT fk_onboarding_member FOREIGN KEY (membership_id) REFERENCES memberships(id) ON DELETE CASCADE,
+    CONSTRAINT fk_onboarding_completed_user FOREIGN KEY (completed_by) REFERENCES users(id) ON DELETE SET NULL,
+    CONSTRAINT fk_onboarding_created_user FOREIGN KEY (created_by) REFERENCES users(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS employee_profile_snapshots (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    organization_id BIGINT UNSIGNED NOT NULL,
+    membership_id BIGINT UNSIGNED NOT NULL,
+    snapshot_type ENUM('manual','assignment_change','offboarding') NOT NULL DEFAULT 'manual',
+    profile_json JSON NOT NULL,
+    created_by BIGINT UNSIGNED NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_profile_snapshot_org FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE,
+    CONSTRAINT fk_profile_snapshot_member FOREIGN KEY (membership_id) REFERENCES memberships(id) ON DELETE CASCADE,
+    CONSTRAINT fk_profile_snapshot_user FOREIGN KEY (created_by) REFERENCES users(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS employee_documents (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    organization_id BIGINT UNSIGNED NOT NULL,
+    membership_id BIGINT UNSIGNED NOT NULL,
+    document_name VARCHAR(190) NOT NULL,
+    storage_name VARCHAR(190) NOT NULL UNIQUE,
+    mime_type VARCHAR(100) NOT NULL,
+    file_size BIGINT UNSIGNED NOT NULL,
+    uploaded_by BIGINT UNSIGNED NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_employee_document_org FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE,
+    CONSTRAINT fk_employee_document_member FOREIGN KEY (membership_id) REFERENCES memberships(id) ON DELETE CASCADE,
+    CONSTRAINT fk_employee_document_user FOREIGN KEY (uploaded_by) REFERENCES users(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
