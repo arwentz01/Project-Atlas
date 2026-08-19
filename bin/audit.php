@@ -37,6 +37,7 @@ if (!$organizationId || !$membershipId) {
 
 $atlas = new AtlasRepository($db);
 $scheduling = new SchedulingRepository($db);
+$advanced = new AdvancedOperationsRepository($db);
 $auth = new Auth($db);
 $today = date('Y-m-d');
 $monthStart = date('Y-m-01');
@@ -88,6 +89,11 @@ $readChecks = [
     'Department schedule defaults' => fn() => $atlas->departmentDefaults($organizationId),
     'Employee import batches' => fn() => $atlas->importBatches($organizationId),
     'Workforce administration' => fn() => $atlas->workforceAdmin($organizationId, $membershipId),
+    'Request policy controls' => fn() => $advanced->requestControls($organizationId),
+    'Attendance operations' => fn() => $advanced->attendance($organizationId),
+    'Coverage forecasts' => fn() => $advanced->coverageForecasts($organizationId),
+    'Owned command queue' => fn() => $advanced->commandItems($organizationId),
+    'Access delegations' => fn() => $advanced->delegations($organizationId),
 ];
 
 $db->beginTransaction();
