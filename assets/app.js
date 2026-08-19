@@ -98,3 +98,8 @@ const updateEligibilityFields = () => {
 };
 eligibilityMode?.addEventListener('change', updateEligibilityFields);
 updateEligibilityFields();
+
+let draggedShiftId=null;
+document.addEventListener('dragstart',(event)=>{const shift=event.target.closest('[data-shift-id]');if(shift){draggedShiftId=shift.dataset.shiftId;shift.classList.add('dragging');}});
+document.addEventListener('dragend',(event)=>{event.target.closest('[data-shift-id]')?.classList.remove('dragging');draggedShiftId=null;});
+document.querySelectorAll('[data-drop-date]').forEach((zone)=>{zone.addEventListener('dragover',(event)=>{event.preventDefault();zone.classList.add('drag-over');});zone.addEventListener('dragleave',()=>zone.classList.remove('drag-over'));zone.addEventListener('drop',(event)=>{event.preventDefault();zone.classList.remove('drag-over');if(!draggedShiftId)return;const form=document.getElementById('dragMoveForm');if(!form)return;form.querySelector('[name="shift_id"]').value=draggedShiftId;form.querySelector('[name="membership_id"]').value=zone.dataset.dropMember||'';form.querySelector('[name="shift_date"]').value=zone.dataset.dropDate;if(window.confirm('Move this shift and recheck eligibility?'))form.submit();});});
