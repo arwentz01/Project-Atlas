@@ -99,6 +99,8 @@ const updateEligibilityFields = () => {
 eligibilityMode?.addEventListener('change', updateEligibilityFields);
 updateEligibilityFields();
 
+document.querySelectorAll('form').forEach((form)=>{const action=form.querySelector('[name="action"][value="manage_structure"]');const active=form.querySelector('[name="active"]');if(action&&active)form.addEventListener('submit',(event)=>{if(!active.checked&&!window.confirm('Archive this resource? Existing history will be preserved.'))event.preventDefault();});});
+
 let draggedShiftId=null;
 document.addEventListener('dragstart',(event)=>{const shift=event.target.closest('[data-shift-id]');if(shift){draggedShiftId=shift.dataset.shiftId;shift.classList.add('dragging');}});
 document.addEventListener('dragend',(event)=>{event.target.closest('[data-shift-id]')?.classList.remove('dragging');draggedShiftId=null;});
