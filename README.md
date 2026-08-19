@@ -6,6 +6,8 @@ The Master Schedule module keeps normal recurring weekly assignments separate fr
 
 Master Schedule also supports bulk weekday entry, assignment editing and archiving, versioned baseline copies, employee weekly-hour summaries, recurring coverage validation, holiday and special-hours rules, draft generation review, conflict resolution, week comparison, and employee publication. Master-generated assignments remain hidden from employee schedules until their generated week is published.
 
+Atlas now includes a seven-day employee schedule board with drag-and-drop reassignment, scoped location and department filters, ranked replacement suggestions, a scheduling command center, unified employee workspaces, detailed shift change history, notification delivery preferences, operational roles and resource scopes, and a mobile-first employee home for shifts, clocking, requests, trades, callouts, messages, and alerts.
+
 This checkpoint connects Atlas's multi-tenant organization foundation while preserving the approved visual system.
 
 ## Included in this visual checkpoint
