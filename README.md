@@ -10,6 +10,8 @@ Master Schedule also supports bulk weekday entry, assignment editing and archivi
 
 Atlas now includes a seven-day employee schedule board with drag-and-drop reassignment, scoped location and department filters, ranked replacement suggestions, a scheduling command center, unified employee workspaces, detailed shift change history, notification delivery preferences, operational roles and resource scopes, and a mobile-first employee home for shifts, clocking, requests, trades, callouts, messages, and alerts.
 
+Organization administration includes editable timezone and visual identity, operating hours, department scheduling defaults, all-or-nothing CSV invitation imports, archive confirmations, employment lifecycle records, secondary assignments, restricted manager notes, onboarding checklists, profile snapshots, offboarding, and protected employee document storage.
+
 This checkpoint connects Atlas's multi-tenant organization foundation while preserving the approved visual system.
 
 ## Included in this visual checkpoint
