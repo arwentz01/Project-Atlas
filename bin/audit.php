@@ -38,6 +38,7 @@ if (!$organizationId || !$membershipId) {
 $atlas = new AtlasRepository($db);
 $scheduling = new SchedulingRepository($db);
 $advanced = new AdvancedOperationsRepository($db);
+$experience = new WorkforceExperienceRepository($db);
 $auth = new Auth($db);
 $today = date('Y-m-d');
 $monthStart = date('Y-m-01');
@@ -94,6 +95,13 @@ $readChecks = [
     'Coverage forecasts' => fn() => $advanced->coverageForecasts($organizationId),
     'Owned command queue' => fn() => $advanced->commandItems($organizationId),
     'Access delegations' => fn() => $advanced->delegations($organizationId),
+    'Notification delivery settings' => fn() => $experience->deliverySettings($organizationId, $membershipId),
+    'Notification delivery operations' => fn() => $experience->notificationOperations($organizationId),
+    'Credential compliance forecast' => fn() => $experience->credentialCompliance($organizationId),
+    'Credential documents' => fn() => $experience->credentialDocuments($organizationId),
+    'Labor operations' => fn() => $experience->laborOperations($organizationId),
+    'Fairness operations' => fn() => $experience->fairnessOperations($organizationId),
+    'Schedule acknowledgments' => fn() => $experience->acknowledgments($organizationId, $membershipId),
 ];
 
 $db->beginTransaction();
