@@ -11,7 +11,7 @@ Atlas is a multi-tenant workforce operations platform for ambulatory practices, 
 
 ## Current position
 
-Atlas is approximately **0.7 in feature breadth** and **0.5 in production readiness**. Scheduling, Master Schedule, workforce workflows, mobile tools, labor, credentials, reporting, and manager operations exist. Authorization enforcement, automated tests, outbound delivery, security hardening, and production operations remain the largest gates.
+Atlas is approximately **0.9 in feature breadth** and **0.75 in production readiness**. Scheduling, Master Schedule, workforce workflows, mobile tools, labor, credentials, reporting, search, portability, security controls, automated checks, and deployment tooling exist. Full legacy authorization enforcement, external delivery providers, browser/load testing, independent security review, and verified hosting operations remain the largest gates.
 
 ## Phase 1: Application foundation
 
@@ -127,27 +127,27 @@ Today, upcoming schedule, clocking, requests, trades, callouts, messages, alerts
 
 ## Phase 16: Reports and audit
 
-Operational, fairness, labor, credential, payroll, administrator, and shift-change reporting exists. Expanded trend reports and saved filters remain planned.
+Operational, fairness, labor, credential, payroll, administrator, and shift-change reporting now includes monthly staffing, open-shift, callout, and approved-time-off trends with reusable saved report filters.
 
 ## Phase 17: Search and navigation
 
-Grouped, collapsible, scrollable navigation is built. Functional global search, keyboard navigation, recent pages, favorites, breadcrumbs, and saved views remain planned.
+Grouped, collapsible, scrollable navigation now includes organization-scoped global search, slash-key focus, Escape clearing, recent-page history, favorites, breadcrumbs, and reusable report, schedule, and search views.
 
 ## Phase 18: Data import and export
 
-Payroll and workforce CSV foundations exist. Additional structured imports, calendar export, portability, previews, duplicate detection, and recoverable rollback remain planned.
+Payroll, workforce, structure, and coverage CSV foundations now include validation previews, all-or-nothing commits, database duplicate protection, recoverable rollback when records are unused, employee calendar export, and organization JSON portability.
 
 ## Phase 19: Security and privacy
 
-Prepared SQL, tenant ownership checks, CSRF protection, password hashing, and audit logs exist. A full authorization audit, security headers, rate-limit review, upload hardening, backup/restore testing, dependency review, and penetration testing are production gates. Atlas must not collect patient information or unnecessary employee health information.
+Prepared SQL, tenant ownership checks, CSRF protection, password hashing, audit logs, CSP and browser security headers, protected private storage, production security checks, backup validation, environment hardening, and security/privacy policies are built. Independent authorization review, dependency scanning, vulnerability scanning, and penetration testing remain production gates. Atlas must not collect patient information or unnecessary employee health information.
 
 ## Phase 20: Quality assurance
 
-The runtime audit exists. Automated authentication, tenant-isolation, permission, eligibility, Master Schedule, time-zone, payroll, mobile, accessibility, and performance tests remain planned.
+The runtime audit now has an automated test runner and continuous-integration syntax, manifest, and security checks covering core authentication primitives, tenant ownership, repository queries, saved views, mobile assets, and private storage. Full browser automation, accessibility scanning, load testing, and expanded workflow fixtures remain release gates.
 
 ## Phase 21: Production readiness
 
-Production configuration, HTTPS, secure cookies, transactional email, backups, monitoring, queue processing, staging, deployment migrations, health checks, policies, documentation, and support workflows remain planned.
+Production configuration templates, secure-cookie controls, backup and restore tools, queue processing, deployment checks, migration commands, JSON health checks, environment readiness UI, privacy/security/runbook documentation, and support workflows are built. The hosting environment must still provide HTTPS certificates, transactional email and push adapters, monitoring credentials, scheduled backups, queue supervision, staging, and an independently verified production deployment.
 
 ## Release milestones
 
@@ -166,8 +166,8 @@ Production configuration, HTTPS, secure cookies, transactional email, backups, m
 
 ## Immediate build order
 
-1. Complete and runtime-test Phases 1 through 4.
-2. Enforce the Phase 10 permission matrix server-side.
-3. Connect transactional email and event-driven notifications.
-4. Build automated tenant-isolation and scheduling tests.
-5. Complete the production security and operations gates.
+1. Run the full migration, audit, automated test, and security suite under MAMP PHP.
+2. Extend the Phase 10 permission policy across every legacy action handler.
+3. Connect transactional email and web-push transport adapters.
+4. Add browser, accessibility, tenant-isolation, scheduling, and performance test suites.
+5. Complete independent security review and a verified staging-to-production release rehearsal.
