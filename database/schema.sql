@@ -861,3 +861,57 @@ CREATE TABLE IF NOT EXISTS master_generation_publications (
     CONSTRAINT fk_master_publication_generation FOREIGN KEY (generation_id) REFERENCES master_schedule_generations(id) ON DELETE CASCADE,
     CONSTRAINT fk_master_publication_user FOREIGN KEY (published_by) REFERENCES users(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS shift_history (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    organization_id BIGINT UNSIGNED NOT NULL,
+    shift_id BIGINT UNSIGNED NOT NULL,
+    action VARCHAR(80) NOT NULL,
+    before_json JSON NULL,
+    after_json JSON NULL,
+    reason VARCHAR(500) NULL,
+    changed_by BIGINT UNSIGNED NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    KEY idx_shift_history (organization_id,shift_id,created_at),
+    CONSTRAINT fk_shift_history_org FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE,
+    CONSTRAINT fk_shift_history_shift FOREIGN KEY (shift_id) REFERENCES shifts(id) ON DELETE CASCADE,
+    CONSTRAINT fk_shift_history_user FOREIGN KEY (changed_by) REFERENCES users(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS notification_preferences (
+    membership_id BIGINT UNSIGNED PRIMARY KEY,
+    organization_id BIGINT UNSIGNED NOT NULL,
+    schedule_published TINYINT(1) NOT NULL DEFAULT 1,
+    schedule_changed TINYINT(1) NOT NULL DEFAULT 1,
+    coverage_offers TINYINT(1) NOT NULL DEFAULT 1,
+    request_decisions TINYINT(1) NOT NULL DEFAULT 1,
+    credential_reminders TINYINT(1) NOT NULL DEFAULT 1,
+    in_app_enabled TINYINT(1) NOT NULL DEFAULT 1,
+    email_enabled TINYINT(1) NOT NULL DEFAULT 0,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT fk_notification_pref_member FOREIGN KEY (membership_id) REFERENCES memberships(id) ON DELETE CASCADE,
+    CONSTRAINT fk_notification_pref_org FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS membership_permissions (
+    membership_id BIGINT UNSIGNED PRIMARY KEY,
+    organization_id BIGINT UNSIGNED NOT NULL,
+    can_schedule TINYINT(1) NOT NULL DEFAULT 0,
+    can_approve TINYINT(1) NOT NULL DEFAULT 0,
+    can_manage_payroll TINYINT(1) NOT NULL DEFAULT 0,
+    can_manage_credentials TINYINT(1) NOT NULL DEFAULT 0,
+    read_only TINYINT(1) NOT NULL DEFAULT 0,
+    updated_by BIGINT UNSIGNED NOT NULL,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT fk_membership_permission_member FOREIGN KEY (membership_id) REFERENCES memberships(id) ON DELETE CASCADE,
+    CONSTRAINT fk_membership_permission_org FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE,
+    CONSTRAINT fk_membership_permission_user FOREIGN KEY (updated_by) REFERENCES users(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS membership_scopes (
+    membership_id BIGINT UNSIGNED NOT NULL,
+    scope_type ENUM('location','department') NOT NULL,
+    resource_id BIGINT UNSIGNED NOT NULL,
+    PRIMARY KEY (membership_id,scope_type,resource_id),
+    CONSTRAINT fk_membership_scope_member FOREIGN KEY (membership_id) REFERENCES memberships(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
