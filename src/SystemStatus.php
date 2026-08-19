@@ -23,6 +23,7 @@ final class SystemStatus
         'master_schedules','master_schedule_entries','master_schedule_generations','master_schedule_generation_items',
         'master_schedule_versions','schedule_exceptions','master_generation_resolutions','master_generation_publications',
         'shift_history','notification_preferences','membership_permissions','membership_scopes',
+        'email_verification_tokens','password_reset_tokens','login_attempts','user_sessions','verified_emails','application_errors',
     ];
 
     public static function missingTables(PDO $db): array
