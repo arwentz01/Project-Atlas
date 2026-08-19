@@ -108,3 +108,4 @@ document.querySelectorAll('[data-drop-date]').forEach((zone)=>{zone.addEventList
 
 document.querySelector('[data-theme-toggle]')?.addEventListener('click',()=>{const root=document.documentElement;const next=root.dataset.theme==='dark'?'light':'dark';root.dataset.theme=next;document.cookie=`atlas_theme=${next}; path=/; max-age=31536000; SameSite=Lax`;});
 if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>null));
+document.addEventListener('keydown',(event)=>{const search=document.querySelector('[data-global-search]');if(event.key==='/'&&!['INPUT','TEXTAREA','SELECT'].includes(document.activeElement?.tagName)){event.preventDefault();search?.focus();}if(event.key==='Escape'&&document.activeElement===search){search.value='';search.blur();}});
